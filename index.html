@@ -1,0 +1,33 @@
+<!-- Базовое подключение канваса -->
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h1>HTML5 Canvas - Draw a Rectangle</h1>
+
+  <canvas id="myCanvas" width="1280" height="960" style="border:1px solid black;">
+    Sorry, your browser does not support canvas.
+  </canvas>
+
+  <script>
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+  </script>
+  
+  <script src="./src/entities/Entity.js"></script>
+  <script src="./src/entities/Factory.js"></script>
+  <script src="./src/entities/Player.js"></script>
+  <script src="./src/entities/Enemy.js"></script>
+  <script src="./src/entities/Additional.js"></script>
+  <script src="./src/managers/gameManager.js"></script>
+  <script src="./src/managers/spriteManager.js"></script>
+  <script src="./src/managers/physicsManager.js"></script>
+  <script src="./src/managers/eventsManager.js"></script>
+  <script src="./src/managers/mapManager.js"></script>
+  <script>
+    gameManager.loadAll(ctx, 1);
+    gameManager.play(performance.now());
+  </script>
+</body>
+</html>
+
