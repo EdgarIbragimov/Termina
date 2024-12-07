@@ -6,6 +6,7 @@ class GameManager {
     this.factory.registerType('Player', Player);
     this.factory.registerType('Enemy', Enemy);
     this.factory.registerType('Additional', Additional);
+    this.factory.registerType('Trap', Trap);
 
     this.entities = [];
     this.player = null;

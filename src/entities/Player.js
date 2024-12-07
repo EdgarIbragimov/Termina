@@ -6,9 +6,11 @@ class Player extends Entity {
     this.direction = "down";
     this.speed = 2;
     this.isAttacking = false;
+    this.attackCD = 1000;
+    this.attackEnd = 0;
     this.width = 43;
     this.height = 105;
-    this.hitboxOffset = { xOffset: 0, yOffset: 0 };
+    this.hitboxOffset = { xOffset: 16, yOffset: 16 };
     this.hitbox = {
       position: {
         x: this.position.x + this.hitboxOffset.xOffset,
@@ -17,6 +19,8 @@ class Player extends Entity {
       width: this.width,
       height: this.height,
     };
+
+    this.isAttacking = false;
 
     // Анимации игрока
     this.animations = {
@@ -72,12 +76,6 @@ class Player extends Entity {
         frameBuffer: 12,
         loop: true,
       },
-      attack: {
-        imageSource: "tiles/Player/AttackAnimations/Player_attack_",
-        framerate: 3,
-        frameBuffer: 60,
-        loop: false,
-      },
       death: {
         imageSource: "tiles/Player/DeathAnimations/Player_death/Player_death-",
         framerate: 2,
@@ -87,7 +85,7 @@ class Player extends Entity {
       crawl: {
         imageSource: "tiles/Player/CrawlAnimations/Player_crawl_",
         framerate: 3,
-        frameBuffer: 60,
+        frameBuffer: 12,
         loop: true,
       },
       defaultAnimation: {
@@ -96,73 +94,146 @@ class Player extends Entity {
         frameBuffer: 60,
         loop: true,
       },
+      walkDownLeft: {
+        imageSource:
+          "tiles/Player/WalkAnimations/Player_walk_diag/DownLeft/DownLeft",
+        framerate: 4,
+        frameBuffer: 12,
+        loop: true,
+      },
+      walkDownRight: {
+        imageSource:
+          "tiles/Player/WalkAnimations/Player_walk_diag/DownRight/DownRight",
+        framerate: 4,
+        frameBuffer: 12,
+        loop: true,
+      },
+      walkUpLeft: {
+        imageSource:
+          "tiles/Player/WalkAnimations/Player_walk_diag/UpLeft/UpLeft",
+        framerate: 4,
+        frameBuffer: 12,
+        loop: true,
+      },
+      walkUpRight: {
+        imageSource:
+          "tiles/Player/WalkAnimations/Player_walk_diag/UpRight/UpRight",
+        framerate: 4,
+        frameBuffer: 12,
+        loop: true,
+      },
+      attackLeft: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_left/Player_attack_left-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackRight: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_right/Player_attack_right-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackDown: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_down/Player_attack_down-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackUp: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_up/Player_attack_up-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackUpLeft: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_up_left/Player_attack_up_left-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackUpRight: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_up_right/Player_attack_up_right-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackDownLeft: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_down_left/Player_attack_down_left-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
+      attackDownRight: {
+        imageSource:
+          "tiles/Player/AttackAnimations/Player_attack_down_right/Player_attack_down_right-",
+        framerate: 3,
+        frameBuffer: 9,
+        loop: false,
+      },
     };
 
     this.currentAnimation = this.animations.stayDown;
-    // this.velocity = {
-    //   x: 0,
-    //   y: 0
-    // }
-
-    // this.hitboxOffset = {
-    //   xOffset: 18,
-    //   yOffset: 18
-    // }
-
-    // this.hitbox = {
-    //   position: {
-    //     x: this.position.x + this.hitboxOffset.xOffset,
-    //     y: this.position.y + this.hitboxOffset.yOffset
-    //   },
-    //   width: 40,
-    //   height: 26
-    // }
-
-    // this.animations = animation.PLAYER
-
-    // this.frames = {
-    //   elapsedFrames: 0,
-    //   currentFrame: 0
-    // }
-
-    // this.currentAnimation = this.animations.idleRight
-
-    // this.direction = 'right'
   }
 
   draw() {
     spriteManager.drawSprite(ctx, this, this.position.x, this.position.y);
-    // if (this.currentAnimation.finished) {
-    //   this.switchAnimation(
-    //     this.direction === 'right' ? 'idleRight' : 'idleLeft'
-    //   )
-    // }
   }
 
   update() {
     if (!this.isAttacking) {
-      if (eventsManager.keys["d"].pressed) {
-        this.moveRight();
-      }
-      if (eventsManager.keys["a"].pressed) {
-        this.moveLeft();
-      }
-      if (eventsManager.keys["w"].pressed) {
-        this.moveUp();
-      }
-      if (eventsManager.keys["s"].pressed) {
-        this.moveDown();
-      }
-      if (
-        !eventsManager.keys["w"].pressed &&
-        !eventsManager.keys["a"].pressed &&
-        !eventsManager.keys["s"].pressed &&
-        !eventsManager.keys["d"].pressed
+      if (eventsManager.keys["d"].pressed && eventsManager.keys["s"].pressed) {
+        this.moveDownRight();
+      } else if (
+        eventsManager.keys["a"].pressed &&
+        eventsManager.keys["s"].pressed
       ) {
-        this.stopMoving();
+        this.moveDownLeft();
+      } else if (
+        eventsManager.keys["a"].pressed &&
+        eventsManager.keys["w"].pressed
+      ) {
+        this.moveUpLeft();
+      } else if (
+        eventsManager.keys["d"].pressed &&
+        eventsManager.keys["w"].pressed
+      ) {
+        this.moveUpRight();
+      } else {
+        if (eventsManager.keys["d"].pressed) {
+          this.moveRight();
+        }
+        if (eventsManager.keys["a"].pressed) {
+          this.moveLeft();
+        }
+        if (eventsManager.keys["w"].pressed) {
+          this.moveUp();
+        }
+        if (eventsManager.keys["s"].pressed) {
+          this.moveDown();
+        }
+        if (
+          !eventsManager.keys["w"].pressed &&
+          !eventsManager.keys["a"].pressed &&
+          !eventsManager.keys["s"].pressed &&
+          !eventsManager.keys["d"].pressed
+        ) {
+          this.stopMoving();
+        }
       }
     } else {
       this.velocity = { x: 0, y: 0 };
+    }
+
+    if (eventsManager.keys[" "].pressed) {
+      this.attack();
     }
 
     physicManager.update(this);
@@ -183,6 +254,14 @@ class Player extends Entity {
             ? "walkLeft"
             : this.direction === "right"
             ? "walkRight"
+            : this.direction === "downLeft"
+            ? "walkDownLeft"
+            : this.direction === "upLeft"
+            ? "walkUpLeft"
+            : this.direction === "downRight"
+            ? "walkDownRight"
+            : this.direction === "upRight"
+            ? "walkUpRight"
             : "defaultAnimation"
         );
       } else {
@@ -225,6 +304,44 @@ class Player extends Entity {
     this.switchAnimation("walkDown");
   }
 
+  attack() {
+    const currentTime = Date.now();
+    if (currentTime - this.attackEnd >= this.attackCD && !this.isAttacking) {
+      this.attackEnd = currentTime;
+      this.isAttacking = true;
+      this.isAttacking = true;
+      this.switchAnimation(
+        this.direction === "down"
+          ? "attackDown"
+          : this.direction === "up"
+          ? "attackUp"
+          : this.direction === "left"
+          ? "attackLeft"
+          : this.direction === "right"
+          ? "attackRight"
+          : this.direction === "downLeft"
+          ? "attackDownLeft"
+          : this.direction === "upLeft"
+          ? "attackUpLeft"
+          : this.direction === "downRight"
+          ? "attackDownRight"
+          : this.direction === "upRight"
+          ? "attackUpRight"
+          : "defaultAnimation"
+      );
+
+      const entities = gameManager.entities;
+      for (let entity of entities) {
+        if (
+          entity instanceof Enemy &&
+          physicManager.checkCollision(this.hitbox, entity.hitbox)
+        ) {
+          entity.onTouch(this);
+        }
+      }
+    }
+  }
+
   stopMoving() {
     this.velocity = { x: 0, y: 0 };
     this.switchAnimation(
@@ -253,10 +370,18 @@ class Player extends Entity {
           this.frames.currentFrame = this.currentAnimation.framerate - 1;
           this.currentAnimation.finished = true;
 
-          // // Сброс флага атаки после завершения анимации
-          // if (this.currentAnimation === this.animations.attackRight || this.currentAnimation === this.animations.attackLeft) {
-          //     this.isAttacking = false;
-          // }
+          if (
+            this.currentAnimation === this.animations.attackRight ||
+            this.currentAnimation === this.animations.attackLeft ||
+            this.currentAnimation === this.animations.attackDown ||
+            this.currentAnimation === this.animations.attackUp ||
+            this.currentAnimation === this.animations.attackDownLeft ||
+            this.currentAnimation === this.animations.attackDownRight ||
+            this.currentAnimation === this.animations.attackUpLeft ||
+            this.currentAnimation === this.animations.attackUpRight
+          ) {
+            this.isAttacking = false;
+          }
         }
       }
     }
@@ -312,4 +437,43 @@ class Player extends Entity {
   //     gameManager.gameOver()
   //   }
   // }
+
+  moveDownLeft() {
+    this.velocity.x = -this.speed;
+    this.velocity.y = this.speed;
+    this.direction = "downLeft";
+    this.switchAnimation("walkDownLeft");
+  }
+
+  moveDownRight() {
+    this.velocity.x = this.speed;
+    this.velocity.y = this.speed;
+    this.direction = "downRight";
+    this.switchAnimation("walkDownRight");
+  }
+
+  moveUpLeft() {
+    this.velocity.x = -this.speed;
+    this.velocity.y = -this.speed;
+    this.direction = "upLeft";
+    this.switchAnimation("walkUpLeft");
+  }
+
+  moveUpRight() {
+    this.velocity.x = this.speed;
+    this.velocity.y = -this.speed;
+    this.direction = "upRight";
+    this.switchAnimation("walkUpRight");
+  }
+
+  onTouch(object) {
+    if (object instanceof Additional) {
+      object.isActivated = true;
+      this.applyDebuff();
+    }
+  }
+
+  applyDebuff() {
+    this.speed *= 0.5;
+  }
 }

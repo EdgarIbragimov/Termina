@@ -1,4 +1,1 @@
-// TODO: разделить на бонусы и ловушки
-class Additional extends Entity  {
-
-}
+class Additional extends Entity {}
