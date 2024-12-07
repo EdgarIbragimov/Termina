@@ -1,145 +1,55 @@
 class PhysicManager {
-  // Менеджер для обработки столкновений и перемещения на карте 
-  // update = obj => {
-  //   obj.position.x += obj.speed.x;
-  //   obj.position.y += obj.speed.y;
-  //   // Обновление координаты y
-
-  //   // this.updateHitbox(obj)
-
-  //   // this.checkForHorizontalCollision(obj)
-  //   // this.applyGravity(obj)
-  //   // this.updateHitbox(obj)
-
-  //   // this.checkForVerticalCollisions(obj)
-  // }
-
-  // checkForHorizontalCollision(obj) {
-  //   for (let i = 0; i < mapManager.collision.length; i++) {
-  //     const collisionBlock = mapManager.collision[i]
-
-  //     // if a collision exists
-  //     if (
-  //       obj.hitbox.position.x <=
-  //         collisionBlock.position.x + collisionBlock.width &&
-  //       obj.hitbox.position.x + obj.hitbox.width >= collisionBlock.position.x &&
-  //       obj.hitbox.position.y + obj.hitbox.height >=
-  //         collisionBlock.position.y &&
-  //       obj.hitbox.position.y <=
-  //         collisionBlock.position.y + collisionBlock.height
-  //     ) {
-  //       // collision on x axis going to the left
-  //       if (obj.velocity.x < -0) {
-  //         const offset = obj.hitbox.position.x - obj.position.x
-  //         obj.position.x =
-  //           collisionBlock.position.x + collisionBlock.width - offset + 0.01
-  //         break
-  //       }
-
-  //       if (obj.velocity.x > 0) {
-  //         const offset =
-  //           obj.hitbox.position.x - obj.position.x + obj.hitbox.width
-  //         obj.position.x = collisionBlock.position.x - offset - 0.01
-  //         break
-  //       }
-  //     }
-  //   }
-  // }
-
-  // checkForVerticalCollisions(obj) {
-  //   for (let i = 0; i < mapManager.collision.length; i++) {
-  //     const collisionBlock = mapManager.collision[i]
-
-  //     // if a collision exists
-  //     if (
-  //       obj.hitbox.position.x <=
-  //         collisionBlock.position.x + collisionBlock.width &&
-  //       obj.hitbox.position.x + obj.hitbox.width >= collisionBlock.position.x &&
-  //       obj.hitbox.position.y + obj.hitbox.height >=
-  //         collisionBlock.position.y &&
-  //       obj.hitbox.position.y <=
-  //         collisionBlock.position.y + collisionBlock.height
-  //     ) {
-  //       if (obj.velocity.y < 0) {
-  //         obj.velocity.y = 0
-  //         const offset = obj.hitbox.position.y - obj.position.y
-  //         obj.position.y =
-  //           collisionBlock.position.y + collisionBlock.height - offset + 0.01
-  //         break
-  //       }
-
-  //       if (obj.velocity.y > 0) {
-  //         obj.velocity.y = 0
-  //         const offset =
-  //           obj.hitbox.position.y - obj.position.y + obj.hitbox.height
-  //         obj.position.y = collisionBlock.position.y - offset - 0.1
-  //         break
-  //       }
-  //     }
-  //   }
-  // }
-
-  // applyGravity(obj) {
-  //   obj.velocity.y += obj.gravity
-  //   obj.position.y += obj.velocity.y
-  // }
-
-  // updateHitbox(obj) {
-  //   obj.hitbox = {
-  //     position: {
-  //       x: obj.position.x + obj.hitboxOffset.xOffset,
-  //       y: obj.position.y + obj.hitboxOffset.yOffset
-  //     },
-  //     width: obj.hitbox.width,
-  //     height: obj.hitbox.height
-  //   }
-  // }
-
-  // intersects = (obj1, obj2) => {
-  //   return (
-  //     obj1.hitbox.position.x < obj2.hitbox.position.x + obj2.hitbox.width &&
-  //     obj1.hitbox.position.x + obj1.hitbox.width > obj2.hitbox.position.x &&
-  //     obj1.hitbox.position.y < obj2.hitbox.position.y + obj2.hitbox.height &&
-  //     obj1.hitbox.position.y + obj1.hitbox.height > obj2.hitbox.position.y
-  //   )
-  // }
-
-  // entityAtXY = (obj, x, y) => {
-  //   for (let i = 0; i < gameManager.entities.length; i++) {
-  //     let e = gameManager.entities[i]
-  //     if (e.name !== obj.name && physicManager.intersects(obj, e)) {
-  //       return e
-  //     }
-  //   }
-  //   return null
-  // }
-
-  // checkCollisionWithSurface(obj) {
-  //   for (let i = 0; i < mapManager.collision.length; i++) {
-  //     const collisionBlock = mapManager.collision[i]
-
-  //     if (
-  //       obj.hitbox.position.x <
-  //         collisionBlock.position.x + collisionBlock.width &&
-  //       obj.hitbox.position.x + obj.hitbox.width > collisionBlock.position.x &&
-  //       obj.hitbox.position.y <
-  //         collisionBlock.position.y + collisionBlock.height &&
-  //       obj.hitbox.position.y + obj.hitbox.height > collisionBlock.position.y
-  //     ) {
-  //       return true
-  //     }
-  //   }
-  //   return false
-  // }
   update(entity) {
+    const oldX = entity.position.x;
+    const oldY = entity.position.y;
+
     entity.position.x += entity.velocity.x;
     entity.position.y += entity.velocity.y;
+
+    const checkArea = this.stayWithinWalkingArea(entity);
+    if (!checkArea) {
+      entity.position.x = oldX;
+      entity.position.y = oldY;
+    }
+
     this.updateHitbox(entity);
+    this.stayWithinBounds(entity);
   }
 
   updateHitbox(entity) {
     entity.hitbox.position.x = entity.position.x + entity.hitboxOffset.xOffset;
     entity.hitbox.position.y = entity.position.y + entity.hitboxOffset.yOffset;
+  }
+
+  checkCollision(entity1, entity2) {
+    return (
+        entity1.position.x <= entity2.position.x + entity2.width &&
+        entity1.position.x + entity1.width >= entity2.position.x &&
+        entity1.position.y <= entity2.position.y + entity2.height &&
+        entity1.position.y + entity1.height >= entity2.position.y
+    );
+  }
+
+  stayWithinWalkingArea(entity) {
+    let newX = entity.position.x;
+    let newY = entity.position.y
+    const ts = mapManager.getTilesetIdxOnWalkingArea(newX + entity.width / 2, newY + entity.height / 2);
+    const walkingArea = mapManager.mapData.layers.find(layer => layer.name === "WalkArea");
+    return walkingArea?.data.includes(ts) && ts !== 0;
+  }
+
+  stayWithinBounds(entity) {
+    if (entity.position.x < 0) {
+      entity.position.x = 0;
+    } else if (entity.position.x + entity.hitbox.width > mapManager.mapSize.x) {
+      entity.position.x = mapManager.mapSize.x - entity.hitbox.width;
+    }
+
+    if (entity.position.y < 0) {
+      entity.position.y = 0;
+    } else if (entity.position.y + entity.hitbox.height > mapManager.mapSize.y) {
+      entity.position.y = mapManager.mapSize.y - entity.hitbox.height;
+    }
   }
 }
 

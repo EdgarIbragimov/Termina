@@ -16,14 +16,15 @@ class Entity {
     };
 
     this.currentAnimation = null;
-    // ВОПРОС по elapsedFrames
     this.frames = {
-      elapsedFrames: 3,
+      elapsedFrames: 0,
       currentFrame: 0,
     };
   }
 
   update() {}
+
+  onTouch() {}
 
   draw(ctx) {
     if (this.currentAnimation) {

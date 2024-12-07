@@ -130,11 +130,10 @@ class MapManager {
               obj.width = e.width
               obj.height = e.height
               obj.sides = { bottom: obj.position.y + obj.height }
-
-              gameManager.entities.push(obj)
+              gameManager.entities.push(obj);
 
               if (obj.name === 'Player') {
-                gameManager.initPlayer(obj)
+                gameManager.initPlayer(obj);
               }
             } catch (ex) {
               console.log(`Error while creating: [${e.gid}] ${e.type}, ${ex}`)
@@ -145,13 +144,13 @@ class MapManager {
     }
   }
 
-  getTilesetIdx = (x, y) => {
+  getTilesetIdxOnWalkingArea = (x, y) => {
     const wX = x
     const wY = y
     const idx =
-      Math.floor(wY / this.tSize.y) * this.xCount +
-      Math.floor(wX / this.tSize.x)
-    return this.tLayer.data[idx]
+        Math.floor(wY / this.tSize.y) * this.xCount +
+        Math.floor(wX / this.tSize.x);
+    return this.tLayer.find(layer => layer.name === "WalkArea").data[idx];
   }
 }
 
