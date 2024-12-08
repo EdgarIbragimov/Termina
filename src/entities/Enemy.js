@@ -116,7 +116,6 @@ class Enemy extends Entity {
 
     // Вычисление длины вектора (гипотенуза)
     const distance = Math.sqrt(dx * dx + dy * dy);
-    // console.log("Distance: ", distance);
 
     // Пороговое значение для остановки
     const STOP_THRESHOLD = 3;

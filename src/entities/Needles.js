@@ -196,7 +196,7 @@ class Needles extends Entity {
           this.speed = 3;
           this.isTrapped = false;
           entity.isVisible = true;
-        }, 3000);
+        }, 200000);
       }
     }
   }

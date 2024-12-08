@@ -32,6 +32,7 @@ class Chest extends Entity {
     };
 
     this.currentAnimation = this.animations.chestDefault;
+    this.isOpen = false;
   }
 
   update() {
@@ -40,5 +41,12 @@ class Chest extends Entity {
 
   draw() {
     spriteManager.drawSprite(ctx, this, this.position.x, this.position.y);
+  }
+
+  open() {
+    if (!this.isOpen) {
+      this.isOpen = true;
+      this.switchAnimation("chestAnimation");
+    }
   }
 }
