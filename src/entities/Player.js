@@ -265,6 +265,7 @@ class Player extends Entity {
 
     this.isSpeedDebuffed = false;
     this.hasBeenTrapped = false;
+    this.isInvulnerable = false;
   }
 
   draw() {
@@ -427,7 +428,7 @@ class Player extends Entity {
     if (currentTime - this.attackEnd >= this.attackCD && !this.isAttacking) {
       this.attackEnd = currentTime;
       this.isAttacking = true;
-      this.isAttacking = true;
+      this.isInvulnerable = true;
       this.switchAnimation(
         this.direction === "down"
           ? "attackDown"
@@ -521,13 +522,6 @@ class Player extends Entity {
     );
   }
 
-  // switchAnimation(type) {
-  //   if (this.currentAnimation.imageSrc === this.animations[type].imageSrc)
-  //     return
-  //   this.currentAnimation = this.animations[type]
-  //   this.currentFrame = 0
-  // }
-
   // attack() {
   //   const entity = physicManager.entityAtXY(
   //     this,
@@ -595,6 +589,7 @@ class Player extends Entity {
             this.currentAnimation === this.animations.attackUpRight
           ) {
             this.isAttacking = false;
+            this.isInvulnerable = false;
           }
         }
       }
