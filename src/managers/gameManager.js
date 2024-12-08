@@ -5,7 +5,8 @@ class GameManager {
     // Регистрация типов объектов и карты
     this.factory.registerType('Player', Player);
     this.factory.registerType('Enemy', Enemy);
-    this.factory.registerType('Additional', Additional);
+    this.factory.registerType('Needles', Needles);
+    this.factory.registerType('Chest', Chest);
     this.factory.registerType('Trap', Trap);
 
     this.entities = [];
@@ -28,13 +29,11 @@ class GameManager {
     this.player.velocity.x = 0;
 
     this.entities.forEach(e => {
-      if (e.name === 'Player') {
         try {
           e.update();
         } catch (error) {
-          console.log('******', error);
+          console.log('Game Error', error);
         }
-      }
     });
 
     mapManager.draw(ctx);
@@ -43,13 +42,11 @@ class GameManager {
 
   draw(ctx) {
     this.entities.forEach(e => {
-      if (e.name === 'Player') {
         try {
           e.draw(ctx)
         } catch (error) {
           console.log('Draw error', error);
         }
-      }
     });
   }
 

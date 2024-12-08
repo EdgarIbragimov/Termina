@@ -1,10 +1,10 @@
-class Enemy extends Entity {
+class Needles extends Entity {
   constructor() {
     super();
-    this.lives = 2;
+    this.lives = 4;
     this.direction = "down";
-    this.width = 43;
-    this.height = 85;
+    this.width = 61;
+    this.height = 107;
     this.hitboxOffset = { xOffset: 0, yOffset: 0 };
     this.hitbox = {
       position: {
@@ -14,66 +14,73 @@ class Enemy extends Entity {
       width: this.width,
       height: this.height,
     };
-    this.speed = 1;
-
+    this.speed = 3;
     this.animations = {
       stayRight: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_right/Ghost_walk_right-0.png",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_right/Needles_walk_right-0.png",
         framerate: 1,
         frameBuffer: 60,
         loop: false,
       },
       stayLeft: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_left/Ghost_walk_left-0.png",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_left/Needles_walk_left-0.png",
         framerate: 1,
         frameBuffer: 60,
         loop: false,
       },
       stayUp: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_up/Ghost_walk_up-0.png",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_up/Needles_walk_up-0.png",
         framerate: 1,
         frameBuffer: 60,
         loop: false,
       },
       stayDown: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_down/Ghost_walk_down-0.png",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_down/Needles_walk_down-0.png",
         framerate: 1,
         frameBuffer: 60,
         loop: false,
       },
       walkLeft: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_left/Ghost_walk_left-",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_left/Needles_walk_left-",
         framerate: 4,
         frameBuffer: 12,
         loop: true,
       },
       walkRight: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_right/Ghost_walk_right-",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_right/Needles_walk_right-",
         framerate: 4,
         frameBuffer: 12,
         loop: true,
       },
       walkUp: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_up/Ghost_walk_up-",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_up/Needles_walk_up-",
         framerate: 4,
         frameBuffer: 12,
         loop: true,
       },
       walkDown: {
         imageSource:
-          "tiles/Enemies/Ghost/WalkAnimations/Ghost_walk_down/Ghost_walk_down-",
+          "tiles/Enemies/Needles/WalkAnimations/Needles_walk_down/Needles_walk_down-",
         framerate: 4,
         frameBuffer: 12,
         loop: true,
       },
+      inTrap: {
+        imageSource:
+          "tiles/Enemies/Needles/TrapAnimations/Needles_trap/Needles_trap-",
+        framerate: 8,
+        frameBuffer: 24,
+        loop: false,
+      },
     };
+    this.isTrapped = false;
     this.isHitByPlayer = false;
     this.currentAnimation = this.animations.stayDown;
     this.lastTakeHitDate = null;
@@ -92,14 +99,28 @@ class Enemy extends Entity {
 
     physicManager.update(this);
 
-    const isMoving = this.velocity.x !== 0 || this.velocity.y !== 0;
+    const isMoving =
+      Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01;
 
-    if (isMoving) {
-      const animationType = "walk" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
-      this.switchAnimation(animationType);
-    } else {
-      const stayAnimation = "stay" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
-      this.switchAnimation(stayAnimation);
+    if (!this.isTrapped) {
+      if (isMoving) {
+        const animationType =
+          "walk" +
+          this.direction.charAt(0).toUpperCase() +
+          this.direction.slice(1);
+        this.switchAnimation(animationType);
+      } else {
+        const stayAnimation =
+          "stay" +
+          this.direction.charAt(0).toUpperCase() +
+          this.direction.slice(1);
+        this.switchAnimation(stayAnimation);
+      }
+    }
+
+    const entity = physicManager.entityAtXY(this);
+    if (entity) {
+      this.onTouch(entity);
     }
 
     this.updateAnimation();
@@ -151,19 +172,32 @@ class Enemy extends Entity {
     this.isHitByPlayer = true;
     this.lives--;
     this.lastTakeHitDate = this.lastTakeHitDate ?? Date.now();
-    console.log('Current enemy', this);
+    console.log("Current enemy", this);
   }
 
-  // onTouch(entity) {
-  //     if (entity instanceof Player) {
-  //         this.lives--;
-  //         if (this.lives <= 0) {
-  //             this.wasEliminated();
-  //         }
-  //     }
-  // }
+  onTouch(entity) {
+    if (entity instanceof Trap && !entity.isActivate) {
+      const enemyFeetY = this.hitbox.position.y + this.hitbox.height;
+      const trapTopY = entity.hitbox.position.y;
+      const trapBottomY = entity.hitbox.position.y + entity.hitbox.height;
 
-  // wasEliminated() {
-  //     gameManager.kill(this);
-  // }
+      if (enemyFeetY > trapTopY && enemyFeetY <= trapBottomY) {
+        this.lives--;
+        this.isTrapped = true;
+        console.log("Trap activated by enemy");
+        this.speed = 0;
+        this.switchAnimation("inTrap");
+        
+        entity.isActivate = true;
+        entity.isVisible = false;
+        entity.switchAnimation("trapAnimation");
+
+        setTimeout(() => {
+          this.speed = 3;
+          this.isTrapped = false;
+          entity.isVisible = true;
+        }, 3000);
+      }
+    }
+  }
 }
