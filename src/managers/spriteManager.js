@@ -47,8 +47,7 @@ class SpriteManager {
     }
 
     let spriteName = obj.currentAnimation.imageSource;
-    
-    // Handle animations with multiple frames
+
     if (obj.currentAnimation.framerate > 1) {
       spriteName = `${spriteName}${obj.frames.currentFrame}.png`;
     }

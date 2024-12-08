@@ -42,4 +42,18 @@ class Entity {
     this.frames.currentFrame = 0;
     this.frames.elapsedFrames = 0;
   }
+
+  updateAnimation() {
+    this.frames.elapsedFrames++;
+    if (this.frames.elapsedFrames >= this.currentAnimation.frameBuffer) {
+      this.frames.elapsedFrames = 0;
+      if (this.frames.currentFrame < this.currentAnimation.framerate - 1) {
+        this.frames.currentFrame++;
+      } else if (this.currentAnimation.loop) {
+        this.frames.currentFrame = 0;
+      } else {
+        this.currentAnimation.finished = true;
+      }
+    }
+  }
 }

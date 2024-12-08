@@ -1,1 +1,0 @@
-class Additional extends Entity {}

@@ -6,12 +6,13 @@ class PhysicManager {
     entity.position.x += entity.velocity.x;
     entity.position.y += entity.velocity.y;
 
-    const checkArea = this.stayWithinWalkingArea(entity);
-    if (!checkArea) {
-      entity.position.x = oldX;
-      entity.position.y = oldY;
+    if(entity.name === "Needles" || entity.name === "Player") {
+      const checkArea = this.stayWithinWalkingArea(entity);
+      if (!checkArea) {
+        entity.position.x = oldX;
+        entity.position.y = oldY;
+      }
     }
-
     this.updateHitbox(entity);
     this.stayWithinBounds(entity);
   }
@@ -19,15 +20,6 @@ class PhysicManager {
   updateHitbox(entity) {
     entity.hitbox.position.x = entity.position.x + entity.hitboxOffset.xOffset;
     entity.hitbox.position.y = entity.position.y + entity.hitboxOffset.yOffset;
-  }
-
-  checkCollision(entity1, entity2) {
-    return (
-        entity1.position.x <= entity2.position.x + entity2.width &&
-        entity1.position.x + entity1.width >= entity2.position.x &&
-        entity1.position.y <= entity2.position.y + entity2.height &&
-        entity1.position.y + entity1.height >= entity2.position.y
-    );
   }
 
   stayWithinWalkingArea(entity) {
@@ -50,6 +42,35 @@ class PhysicManager {
     } else if (entity.position.y + entity.hitbox.height > mapManager.mapSize.y) {
       entity.position.y = mapManager.mapSize.y - entity.hitbox.height;
     }
+  }
+
+  // intersects = (obj1, obj2) => {
+  //   return (
+  //     obj1.hitbox.position.x < obj2.hitbox.position.x + obj2.hitbox.width &&
+  //     obj1.hitbox.position.x + obj1.hitbox.width > obj2.hitbox.position.x &&
+  //     obj1.hitbox.position.y < obj2.hitbox.position.y + obj2.hitbox.height &&
+  //     obj1.hitbox.position.y + obj1.hitbox.height > obj2.hitbox.position.y
+  //   )
+  // }
+
+  entityAtXY = (obj) => {
+    for (let i = 0; i < gameManager.entities.length; i++) {
+      let e = gameManager.entities[i]
+      if (e.name !== obj.name && this.checkCollision(obj, e)) {
+        //console.log("<><><><>", e.name);
+        return e
+      }
+    }
+    return null
+  }
+
+  checkCollision(entity1, entity2) {
+    return (
+        entity1.hitbox.position.x <= entity2.hitbox.position.x + entity2.hitbox.width &&
+        entity1.hitbox.position.x + entity1.hitbox.width >= entity2.hitbox.position.x &&
+        entity1.hitbox.position.y <= entity2.hitbox.position.y + entity2.hitbox.height &&
+        entity1.hitbox.position.y + entity1.hitbox.height >= entity2.hitbox.position.y
+    );
   }
 }
 
