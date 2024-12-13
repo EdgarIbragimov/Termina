@@ -2,12 +2,12 @@ class Player extends Entity {
   constructor() {
     super();
 
-    this.lives = 3;
-    this.direction = "down";
-    this.speed = 6;
-    this.isAttacking = false;
-    this.attackCD = 1000;
-    this.attackEnd = 0;
+    this.lives = 10;
+    this.maxLives = 10;
+    this.damage = 1;
+    this.speed = 5;
+    this.defaultSpeed = 5;
+
     this.width = 43;
     this.height = 105;
     this.hitboxOffset = {
@@ -23,7 +23,13 @@ class Player extends Entity {
       height: this.height,
     };
 
+    this.direction = "down";
     this.isAttacking = false;
+    this.attackCD = 1000;
+    this.attackEnd = 0;
+    this.baseHitboxWidth = this.width;
+    this.baseHitboxHeight = this.height;
+    this.attackRange = 20;
 
     // Анимации игрока
     this.animations = {
@@ -266,6 +272,7 @@ class Player extends Entity {
     this.isSpeedDebuffed = false;
     this.hasBeenTrapped = false;
     this.isInvulnerable = false;
+    this.invulnerabilityDuration = 2000;
   }
 
   draw() {
@@ -341,34 +348,34 @@ class Player extends Entity {
               ? "crawlDown"
               : "walkDown"
             : this.direction === "up"
-            ? this.hasBeenTrapped
-              ? "crawlUp"
-              : "walkUp"
-            : this.direction === "left"
-            ? this.hasBeenTrapped
-              ? "crawlLeft"
-              : "walkLeft"
-            : this.direction === "right"
-            ? this.hasBeenTrapped
-              ? "crawlRight"
-              : "walkRight"
-            : this.direction === "downLeft"
-            ? this.hasBeenTrapped
-              ? "crawlDownLeft"
-              : "walkDownLeft"
-            : this.direction === "upLeft"
-            ? this.hasBeenTrapped
-              ? "crawlUpLeft"
-              : "walkUpLeft"
-            : this.direction === "downRight"
-            ? this.hasBeenTrapped
-              ? "crawlDownRight"
-              : "walkDownRight"
-            : this.direction === "upRight"
-            ? this.hasBeenTrapped
-              ? "crawlUpRight"
-              : "walkUpRight"
-            : "defaultAnimation"
+              ? this.hasBeenTrapped
+                ? "crawlUp"
+                : "walkUp"
+              : this.direction === "left"
+                ? this.hasBeenTrapped
+                  ? "crawlLeft"
+                  : "walkLeft"
+                : this.direction === "right"
+                  ? this.hasBeenTrapped
+                    ? "crawlRight"
+                    : "walkRight"
+                  : this.direction === "downLeft"
+                    ? this.hasBeenTrapped
+                      ? "crawlDownLeft"
+                      : "walkDownLeft"
+                    : this.direction === "upLeft"
+                      ? this.hasBeenTrapped
+                        ? "crawlUpLeft"
+                        : "walkUpLeft"
+                      : this.direction === "downRight"
+                        ? this.hasBeenTrapped
+                          ? "crawlDownRight"
+                          : "walkDownRight"
+                        : this.direction === "upRight"
+                          ? this.hasBeenTrapped
+                            ? "crawlUpRight"
+                            : "walkUpRight"
+                          : "defaultAnimation",
         );
       } else {
         this.switchAnimation(
@@ -377,20 +384,20 @@ class Player extends Entity {
               ? "stayCrawlDown"
               : "stayDown"
             : this.direction === "up"
-            ? this.hasBeenTrapped
-              ? "stayCrawlUp"
-              : "stayUp"
-            : this.direction === "left"
-            ? this.hasBeenTrapped
-              ? "stayCrawlLeft"
-              : "stayLeft"
-            : this.direction === "right"
-            ? this.hasBeenTrapped
-              ? "stayCrawlRight"
-              : "stayRight"
-            : this.hasBeenTrapped
-            ? "stayCrawlDown"
-            : "defaultAnimation"
+              ? this.hasBeenTrapped
+                ? "stayCrawlUp"
+                : "stayUp"
+              : this.direction === "left"
+                ? this.hasBeenTrapped
+                  ? "stayCrawlLeft"
+                  : "stayLeft"
+                : this.direction === "right"
+                  ? this.hasBeenTrapped
+                    ? "stayCrawlRight"
+                    : "stayRight"
+                  : this.hasBeenTrapped
+                    ? "stayCrawlDown"
+                    : "defaultAnimation",
         );
       }
     }
@@ -417,6 +424,10 @@ class Player extends Entity {
         }
       }
     }
+
+    if (entity instanceof Chest && eventsManager.keys["e"].pressed) {
+      entity.open(this);
+    }
   }
 
   attack() {
@@ -424,52 +435,50 @@ class Player extends Entity {
       console.log("Player cannot attack after being trapped.");
       return;
     }
+
     const currentTime = Date.now();
     if (currentTime - this.attackEnd >= this.attackCD && !this.isAttacking) {
       this.attackEnd = currentTime;
       this.isAttacking = true;
       this.isInvulnerable = true;
+
+      // this.hitbox.position.x -= this.attackRange;
+      // this.hitbox.position.y -= this.attackRange;
+      // this.hitbox.width += this.attackRange * 1.5;
+      // this.hitbox.height += this.attackRange * 1.5;
+
       this.switchAnimation(
         this.direction === "down"
           ? "attackDown"
           : this.direction === "up"
-          ? "attackUp"
-          : this.direction === "left"
-          ? "attackLeft"
-          : this.direction === "right"
-          ? "attackRight"
-          : this.direction === "downLeft"
-          ? "attackDownLeft"
-          : this.direction === "upLeft"
-          ? "attackUpLeft"
-          : this.direction === "downRight"
-          ? "attackDownRight"
-          : this.direction === "upRight"
-          ? "attackUpRight"
-          : "defaultAnimation"
+            ? "attackUp"
+            : this.direction === "left"
+              ? "attackLeft"
+              : this.direction === "right"
+                ? "attackRight"
+                : this.direction === "downLeft"
+                  ? "attackDownLeft"
+                  : this.direction === "upLeft"
+                    ? "attackUpLeft"
+                    : this.direction === "downRight"
+                      ? "attackDownRight"
+                      : this.direction === "upRight"
+                        ? "attackUpRight"
+                        : "defaultAnimation",
       );
 
-      // Обновление размера хитбокса в зависимости от направлеия удара
-      // if (this.direction === "down") {
-      //   this.hitbox.position.y += 10;
-      // }
-      // if (this.direction === "down") {
-      //   this.hitbox.position.y += 10;
-      // }
-
-      // const entities = gameManager.entities;
-      // for (let entity of entities) {
-      //   if (
-      //     entity instanceof Enemy &&
-      //     physicManager.checkCollision(this.hitbox, entity.hitbox)
-      //   ) {
-      //     entity.onTouch(this);
-      //   }
-      // }
       const entity = physicManager.entityAtXY(this);
-      if (entity && entity instanceof Enemy) {
-        entity.takeAttack();
+      if (entity && (entity instanceof Enemy || entity instanceof Needles)) {
+        console.log(">>> Entity is touching the player!", entity);
+        entity.takeAttack(this.damage);
       }
+
+      // setTimeout(() => {
+      //   this.hitbox.position.x = this.position.x + this.hitboxOffset.xOffset;
+      //   this.hitbox.position.y = this.position.y + this.hitboxOffset.yOffset;
+      //   this.hitbox.width = this.baseHitboxWidth;
+      //   this.hitbox.height = this.baseHitboxHeight;
+      // }, 100);
     }
   }
 
@@ -497,48 +506,12 @@ class Player extends Entity {
     this.switchAnimation(this.hasBeenTrapped ? "crawlDown" : "walkDown");
   }
 
-  stopMoving() {
-    this.velocity = { x: 0, y: 0 };
-    this.switchAnimation(
-      this.direction === "down"
-        ? this.hasBeenTrapped
-          ? "stayCrawlDown"
-          : "stayDown"
-        : this.direction === "up"
-        ? this.hasBeenTrapped
-          ? "stayCrawlUp"
-          : "stayUp"
-        : this.direction === "left"
-        ? this.hasBeenTrapped
-          ? "stayCrawlLeft"
-          : "stayLeft"
-        : this.direction === "right"
-        ? this.hasBeenTrapped
-          ? "stayCrawlRight"
-          : "stayRight"
-        : this.hasBeenTrapped
-        ? "stayCrawlDown"
-        : "defaultAnimation"
-    );
-  }
-
-  // attack() {
-  //   const entity = physicManager.entityAtXY(
-  //     this,
-  //     this.position.x,
-  //     this.position.y
-  //   )
-  //   if (entity && entity instanceof EnemyBase) {
-  //     entity.onTouch(this) // Допустим, что у врага есть метод takeDamage()
-  //   }
-  // }
-
   moveDownLeft() {
     this.velocity.x = -this.speed;
     this.velocity.y = this.speed;
     this.direction = "downLeft";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft"
+      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft",
     );
   }
 
@@ -547,7 +520,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downRight";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight"
+      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight",
     );
   }
 
@@ -563,6 +536,31 @@ class Player extends Entity {
     this.velocity.y = -this.speed;
     this.direction = "upRight";
     this.switchAnimation(this.hasBeenTrapped ? "crawlUpRight" : "walkUpRight");
+  }
+
+  stopMoving() {
+    this.velocity = { x: 0, y: 0 };
+    this.switchAnimation(
+      this.direction === "down"
+        ? this.hasBeenTrapped
+          ? "stayCrawlDown"
+          : "stayDown"
+        : this.direction === "up"
+          ? this.hasBeenTrapped
+            ? "stayCrawlUp"
+            : "stayUp"
+          : this.direction === "left"
+            ? this.hasBeenTrapped
+              ? "stayCrawlLeft"
+              : "stayLeft"
+            : this.direction === "right"
+              ? this.hasBeenTrapped
+                ? "stayCrawlRight"
+                : "stayRight"
+              : this.hasBeenTrapped
+                ? "stayCrawlDown"
+                : "defaultAnimation",
+    );
   }
 
   updateAnimation() {
@@ -593,6 +591,22 @@ class Player extends Entity {
           }
         }
       }
+    }
+  }
+
+  takeAttack(entity) {
+    if (
+      (entity instanceof Enemy || entity instanceof Needles) &&
+      !this.isInvulnerable
+    ) {
+      this.lives--;
+      console.log(entity);
+      console.log("Player lives: ", this.lives);
+
+      this.isInvulnerable = true;
+      setTimeout(() => {
+        this.isInvulnerable = false;
+      }, this.invulnerabilityDuration);
     }
   }
 }

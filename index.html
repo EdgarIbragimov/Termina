@@ -1,14 +1,16 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>HTML5 Canvas - Draw a Rectangle</h1>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Termina</title>
+    <link rel="icon" type="image/png" href="./assets/icon.png" />
+    <link rel="stylesheet" href="./src/css/stylesheet.css" />
+  </head>
 
-    <canvas
-      id="myCanvas"
-      width="1280"
-      height="960"
-      style="border: 1px solid black"
-    >
+  <body>
+    <canvas id="myCanvas" width="1280" height="960">
       Sorry, your browser does not support canvas.
     </canvas>
 
@@ -32,7 +34,7 @@
     <script src="./src/managers/mapManager.js"></script>
     <script>
       gameManager.loadAll(ctx, 1);
-      //gameManager.init();
+      gameManager.init();
       gameManager.play(performance.now());
     </script>
   </body>

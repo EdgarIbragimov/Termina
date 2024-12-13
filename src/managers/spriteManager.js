@@ -63,7 +63,7 @@ class SpriteManager {
         x,
         y,
         sprite.w,
-        sprite.h
+        sprite.h,
       );
     } else {
       console.warn(`Sprite not found: ${spriteName}`);

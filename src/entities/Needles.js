@@ -15,6 +15,14 @@ class Needles extends Entity {
       height: this.height,
     };
     this.speed = 3;
+
+    this.isTrapped = false;
+
+    this.isHitByPlayer = false;
+    this.lastTakeHitDate = null;
+
+    //this.isDead = false;
+
     this.animations = {
       stayRight: {
         imageSource:
@@ -79,17 +87,23 @@ class Needles extends Entity {
         frameBuffer: 24,
         loop: false,
       },
+      death: {
+        imageSource: "tiles/Enemies/Needles/DeathAnimations/Needles_death.png",
+        framerate: 1,
+        frameBuffer: 60,
+        loop: true,
+      },
     };
-    this.isTrapped = false;
-    this.isHitByPlayer = false;
+
     this.currentAnimation = this.animations.stayDown;
-    this.lastTakeHitDate = null;
   }
 
   update() {
+    if (this.isDead) return;
+
     const currentDate = Date.now();
     const diffDate = currentDate - this.lastTakeHitDate;
-    if (diffDate > 2000) {
+    if (diffDate > 1000) {
       this.isHitByPlayer = false;
     }
 
@@ -130,51 +144,6 @@ class Needles extends Entity {
     spriteManager.drawSprite(ctx, this, this.position.x, this.position.y);
   }
 
-  chaseFunction(enemy, player) {
-    // Разность координат
-    const dx = player.hitbox.position.x - enemy.hitbox.position.x;
-    const dy = player.hitbox.position.y - enemy.hitbox.position.y;
-
-    // Вычисление длины вектора (гипотенуза)
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    // console.log("Distance: ", distance);
-
-    // Пороговое значение для остановки
-    const STOP_THRESHOLD = 3;
-
-    // Если игрок слишком далеко, двигаться к нему
-    if (distance > STOP_THRESHOLD) {
-      // Нормализация вектора направления
-      const normalizedX = dx / distance;
-      const normalizedY = dy / distance;
-
-      // Устанавливаем velocity для движения
-      enemy.velocity.x = normalizedX * this.speed;
-      enemy.velocity.y = normalizedY * this.speed;
-
-      // Перемещение enemy
-      enemy.position.x += enemy.velocity.x;
-      enemy.position.y += enemy.velocity.y;
-
-      // Определение направления движения на основе преобладающей скорости
-      if (Math.abs(enemy.velocity.x) > Math.abs(enemy.velocity.y)) {
-        enemy.direction = enemy.velocity.x > 0 ? "right" : "left";
-      } else {
-        enemy.direction = enemy.velocity.y > 0 ? "down" : "up";
-      }
-    } else {
-      enemy.velocity.x = 0;
-      enemy.velocity.y = 0;
-    }
-  }
-
-  takeAttack() {
-    this.isHitByPlayer = true;
-    this.lives--;
-    this.lastTakeHitDate = this.lastTakeHitDate ?? Date.now();
-    console.log("Current enemy", this);
-  }
-
   onTouch(entity) {
     if (entity instanceof Trap && !entity.isActivate) {
       const enemyFeetY = this.hitbox.position.y + this.hitbox.height;
@@ -183,21 +152,45 @@ class Needles extends Entity {
 
       if (enemyFeetY > trapTopY && enemyFeetY <= trapBottomY) {
         this.lives--;
-        this.isTrapped = true;
-        console.log("Trap activated by enemy");
-        this.speed = 0;
-        this.switchAnimation("inTrap");
-        
         entity.isActivate = true;
-        entity.isVisible = false;
         entity.switchAnimation("trapAnimation");
+        if (this.lives <= 0) {
+          this.kill();
+        } else {
+          this.isTrapped = true;
+          console.log("Trap activated by enemy");
+          this.speed = 0;
+          this.switchAnimation("inTrap");
 
-        setTimeout(() => {
-          this.speed = 3;
-          this.isTrapped = false;
-          entity.isVisible = true;
-        }, 200000);
+          entity.isVisible = false;
+
+          setTimeout(() => {
+            this.speed = 3;
+            this.isTrapped = false;
+            entity.isVisible = true;
+          }, 3000);
+        }
       }
     }
+
+    if (entity instanceof Player && !this.isTrapped) {
+      entity.takeAttack(this);
+    }
+  }
+
+  takeAttack(damage) {
+    this.isHitByPlayer = true;
+    this.lives -= damage;
+    this.lastTakeHitDate = this.lastTakeHitDate ?? Date.now();
+    console.log("Current enemy", this.lives, this);
+    if (this.lives <= 0) {
+      this.kill();
+    }
+  }
+
+  kill() {
+    this.isDead = true;
+    this.switchAnimation("death");
+    gameManager.bossIsKilled = true;
   }
 }

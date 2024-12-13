@@ -31,11 +31,49 @@ class Chest extends Entity {
       },
     };
 
-    this.currentAnimation = this.animations.chestDefault;
+    this.items = [
+      { 
+        name: "Poison", 
+        effect: (player) => {
+          player.lives -= 1;
+          console.log("Player got poisoned! -1 HP");
+        }
+      },
+      { 
+        name: "R'hyer Boots", 
+        effect: (player) => {
+          player.speed *= 2;
+          console.log("Speed doubled!");
+        }
+      },
+      { 
+        name: "Light Blue Bottle", 
+        effect: (player) => {
+          player.lives = Math.min(player.lives + 4, player.maxLives);
+          player.hasBeenTrapped = false;
+          player.isSpeedDebuffed = false;
+          player.speed = player.defaultSpeed;
+          console.log("Restored 4 HP and normalized speed");
+        }
+      },
+      { 
+        name: "Red Virtue Sword", 
+        effect: (player) => {
+          player.damage += 1;
+          console.log("Damage increased by 1!");
+        }
+      }
+    ];
+
+    this.loot = null;
     this.isOpen = false;
+
+    this.currentAnimation = this.animations.chestDefault;
   }
 
   update() {
+    this.hitbox.position.x = this.position.x + this.hitboxOffset.xOffset;
+    this.hitbox.position.y = this.position.y + this.hitboxOffset.yOffset;
     this.updateAnimation();
   }
 
@@ -43,10 +81,15 @@ class Chest extends Entity {
     spriteManager.drawSprite(ctx, this, this.position.x, this.position.y);
   }
 
-  open() {
+  open(player) {
+   // console.log(">>> Chest opened!");
     if (!this.isOpen) {
       this.isOpen = true;
       this.switchAnimation("chestAnimation");
+      
+      this.loot = this.items[Math.floor(Math.random() * this.items.length)];
+      
+      this.loot.effect(player);
     }
   }
 }

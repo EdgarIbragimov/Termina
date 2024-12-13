@@ -4,7 +4,6 @@ class SoundManager {
     this.context = null;
     this.gainNode = null;
     this.loaded = false;
-   // this.gameMusicPath = 'audio/music/ost.mp3';
   }
 
   init() {
@@ -84,3 +83,5 @@ class SoundManager {
     this.gainNode.gain.value = this.volume;
   }
 }
+
+const soundManager = new SoundManager();
