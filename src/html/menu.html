@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Main menu</title>
+    <link rel="icon" type="image/png" href="../../assets/icon.png" />
+    <link rel="stylesheet" href="../css/stylesheet.css" />
+  </head>
+
+  <body>
+    <img src="../../assets/logo.png" alt="logo" title="Termina" />
+    <div class="menu">
+      <button id="startGame" class="menu__button" onclick="startGame()">Start Game</button>
+      <button id="settings" class="menu__button" onclick="openSettings()">
+        Settings
+      </button>
+      <button id="leaderboard" class="menu__button">Leaderboard</button>
+    </div>
+    <div id="modal">
+      <div id="modalContent">
+        <h2>Volume Setting</h2>
+        <label for="volumeControl">Volume: </label>
+        <input type="range" min="0" max="100" value="50" id="volumeControl">
+        <br><br>
+        <button id="exit__button" onclick="closeModal()">Exit</button>
+      </div>
+    </div>
+    <script>
+      // window.addEventListener("load", () => {
+      //   const audio = document.getElementById("backgroundMusic");
+      //   audio.play().catch((error) => {
+      //     console.error("Playback failed: ", error);
+      //   });
+      // });
+
+      document.getElementById("startButton").addEventListener("click", () => {
+        this.init();
+      });
+
+      function startGame() {
+        window.location.href = "../../index.html";
+      }
+
+
+      function openSettings() {
+        document.getElementById("modal").style.display = "flex";
+        document
+          .querySelectorAll(".menu__button")
+          .forEach((btn) => (btn.style.display = "none"));
+      }
+
+      function closeModal() {
+        document.getElementById("modal").style.display = "none";
+        document
+          .querySelectorAll(".menu__button")
+          .forEach((btn) => (btn.style.display = "inline"));
+      }
+    </script>
+  </body>
+</html>
