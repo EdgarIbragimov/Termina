@@ -12,7 +12,9 @@
   <body>
     <img src="../../assets/logo.png" alt="logo" title="Termina" />
     <div class="menu">
-      <button id="startGame" class="menu__button" onclick="startGame()">Start Game</button>
+      <button id="startGame" class="menu__button" onclick="startGame()">
+        Start Game
+      </button>
       <button id="settings" class="menu__button" onclick="openSettings()">
         Settings
       </button>
@@ -21,28 +23,39 @@
     <div id="modal">
       <div id="modalContent">
         <h2>Volume Setting</h2>
-        <label for="volumeControl">Volume: </label>
-        <input type="range" min="0" max="100" value="50" id="volumeControl">
-        <br><br>
+        <div class="volume-control">
+          <label for="volumeSlider">Volume: </label>
+          <input
+            type="range"
+            id="volumeSlider"
+            min="0"
+            max="1"
+            step="0.1"
+            value="0.5"
+          />
+        </div>
+        <br /><br />
         <button id="exit__button" onclick="closeModal()">Exit</button>
       </div>
     </div>
+    <script src="../../src/managers/soundManager.js"></script>
     <script>
-      // window.addEventListener("load", () => {
-      //   const audio = document.getElementById("backgroundMusic");
-      //   audio.play().catch((error) => {
-      //     console.error("Playback failed: ", error);
-      //   });
-      // });
+      function updateVolume(value) {}
 
-      document.getElementById("startButton").addEventListener("click", () => {
+      const menuMusicPath = "../../audio/music/menu.mp3";
+      soundManager.init();
+      soundManager.loadArray([menuMusicPath]);
+      soundManager.play(menuMusicPath);
+    </script>
+
+    <script>
+      document.getElementById("startGame").addEventListener("click", () => {
         this.init();
       });
 
       function startGame() {
         window.location.href = "../../index.html";
       }
-
 
       function openSettings() {
         document.getElementById("modal").style.display = "flex";
@@ -57,6 +70,44 @@
           .querySelectorAll(".menu__button")
           .forEach((btn) => (btn.style.display = "inline"));
       }
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Инициализация звука при загрузке страницы
+        soundManager.init();
+
+        // Загрузка сохраненной громкости
+        const savedVolume = localStorage.getItem("gameVolume");
+        const volumeSlider = document.getElementById("volumeSlider");
+
+        if (savedVolume !== null) {
+          volumeSlider.value = savedVolume;
+          soundManager.setVolume(parseFloat(savedVolume));
+        }
+
+        // Обработчик изменения громкости
+        volumeSlider.addEventListener("input", (e) => {
+          const volume = parseFloat(e.target.value);
+          soundManager.setVolume(volume);
+        });
+
+        // Обработчик для начала воспроизведения музыки по действию пользователя
+        document.addEventListener(
+          "click",
+          () => {
+            if (soundManager.context.state === "suspended") {
+              soundManager.context.resume().then(() => {
+                soundManager.loadArray(["../../audio/music/menu.mp3"]);
+                soundManager.play("../../audio/music/menu.mp3", {
+                  looping: true,
+                });
+              });
+            }
+          },
+          { once: true }
+        );
+      });
     </script>
   </body>
 </html>

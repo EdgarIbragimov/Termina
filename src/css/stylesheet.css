@@ -119,3 +119,13 @@ canvas {
 .message-container.fade-out {
   opacity: 0;
 }
+
+#maxKills {
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+#maxKills.boss {
+  color: red;
+  font-size: 1.2em;
+}

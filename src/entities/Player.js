@@ -2,8 +2,8 @@ class Player extends Entity {
   constructor() {
     super();
 
-    this.lives = 10;
-    this.maxLives = 10;
+    this.lives = 6;
+    this.maxLives = 6;
     this.damage = 1;
     this.speed = 5;
     this.defaultSpeed = 5;
@@ -27,9 +27,6 @@ class Player extends Entity {
     this.isAttacking = false;
     this.attackCD = 1000;
     this.attackEnd = 0;
-    this.baseHitboxWidth = this.width;
-    this.baseHitboxHeight = this.height;
-    this.attackRange = 20;
 
     // Анимации игрока
     this.animations = {
@@ -271,8 +268,10 @@ class Player extends Entity {
 
     this.isSpeedDebuffed = false;
     this.hasBeenTrapped = false;
-    this.isInvulnerable = false;
+    this.isInvulnerableToEnemies = false;
     this.invulnerabilityDuration = 2000;
+
+    this.isDying = false;
   }
 
   draw() {
@@ -280,6 +279,10 @@ class Player extends Entity {
   }
 
   update() {
+    if (this.isDying) {
+      return; // Останавливаем обновление при смерти
+    }
+
     if (!this.isAttacking) {
       if (eventsManager.keys["d"].pressed && eventsManager.keys["s"].pressed) {
         this.moveDownRight();
@@ -375,7 +378,7 @@ class Player extends Entity {
                           ? this.hasBeenTrapped
                             ? "crawlUpRight"
                             : "walkUpRight"
-                          : "defaultAnimation"
+                          : "defaultAnimation",
         );
       } else {
         this.switchAnimation(
@@ -397,7 +400,7 @@ class Player extends Entity {
                     : "stayRight"
                   : this.hasBeenTrapped
                     ? "stayCrawlDown"
-                    : "defaultAnimation"
+                    : "defaultAnimation",
         );
       }
     }
@@ -411,7 +414,6 @@ class Player extends Entity {
 
       if (playerFeetY > trapTopY && playerFeetY <= trapBottomY) {
         this.lives--;
-        console.log("Player lives: ", this.lives);
         if (!this.isSpeedDebuffed) {
           this.speed *= 0.5;
           this.isSpeedDebuffed = true;
@@ -427,7 +429,18 @@ class Player extends Entity {
 
     if (entity instanceof Chest && eventsManager.keys["e"].pressed) {
       entity.open(this);
-      this.displayChestMessage(entity.message);
+      gameManager.displayMessage(entity.message);
+    }
+
+    if (
+      entity instanceof Transition &&
+      gameManager.killCount >= gameManager.maxKills
+    ) {
+      gameManager.nextLevel();
+    }
+    if (this.lives === 0 && !this.isDying) {
+      this.die();
+      gameManager.gameOver();
     }
   }
 
@@ -441,12 +454,6 @@ class Player extends Entity {
     if (currentTime - this.attackEnd >= this.attackCD && !this.isAttacking) {
       this.attackEnd = currentTime;
       this.isAttacking = true;
-      this.isInvulnerable = true;
-
-      // this.hitbox.position.x -= this.attackRange;
-      // this.hitbox.position.y -= this.attackRange;
-      // this.hitbox.width += this.attackRange * 1.5;
-      // this.hitbox.height += this.attackRange * 1.5;
 
       this.switchAnimation(
         this.direction === "down"
@@ -465,21 +472,15 @@ class Player extends Entity {
                       ? "attackDownRight"
                       : this.direction === "upRight"
                         ? "attackUpRight"
-                        : "defaultAnimation"
+                        : "defaultAnimation",
       );
 
-      const entity = physicManager.entityAtXY(this);
-      if (entity && (entity instanceof Enemy || entity instanceof Needles)) {
-        console.log(">>> Entity is touching the player!", entity);
-        entity.takeAttack(this.damage);
-      }
-
-      // setTimeout(() => {
-      //   this.hitbox.position.x = this.position.x + this.hitboxOffset.xOffset;
-      //   this.hitbox.position.y = this.position.y + this.hitboxOffset.yOffset;
-      //   this.hitbox.width = this.baseHitboxWidth;
-      //   this.hitbox.height = this.baseHitboxHeight;
-      // }, 100);
+      const entities = physicManager.getEntitiesInRange(this, 50);
+      entities.forEach(entity => {
+        if (entity instanceof Enemy || entity instanceof Needles) {
+          entity.takeAttack(this.damage);
+        }
+      });
     }
   }
 
@@ -512,7 +513,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downLeft";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft"
+      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft",
     );
   }
 
@@ -521,7 +522,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downRight";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight"
+      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight",
     );
   }
 
@@ -560,7 +561,7 @@ class Player extends Entity {
                 : "stayRight"
               : this.hasBeenTrapped
                 ? "stayCrawlDown"
-                : "defaultAnimation"
+                : "defaultAnimation",
     );
   }
 
@@ -588,7 +589,6 @@ class Player extends Entity {
             this.currentAnimation === this.animations.attackUpRight
           ) {
             this.isAttacking = false;
-            this.isInvulnerable = false;
           }
         }
       }
@@ -596,67 +596,30 @@ class Player extends Entity {
   }
 
   takeAttack(entity) {
-    if (
-      (entity instanceof Enemy || entity instanceof Needles) &&
-      !this.isInvulnerable
-    ) {
-      this.lives--;
-      console.log(entity);
-      console.log("Player lives: ", this.lives);
+    const isEnemyAttack = entity instanceof Enemy || entity instanceof Needles;
 
-      this.isInvulnerable = true;
+    if (isEnemyAttack && this.isInvulnerableToEnemies) {
+      return;
+    }
+
+    if (isEnemyAttack && this.lives > 0) {
+      this.lives--;
+      this.isInvulnerableToEnemies = true;
+      
       setTimeout(() => {
-        this.isInvulnerable = false;
+        this.isInvulnerableToEnemies = false;
       }, this.invulnerabilityDuration);
     }
-  }
 
-  updatePlayerHUD() {
-    document.getElementById("lives").textContent = this.lives;
-    document.getElementById("damage").textContent = this.damage;
-    document.getElementById("speed").textContent = this.speed;
-  }
-
-  displayChestMessage(message) {
-    if (!message) return; // Guard clause for undefined messages
-    
-    // Remove any existing message containers
-    const existingContainer = document.querySelector('.message-container');
-    if (existingContainer) {
-      existingContainer.remove();
+    if (this.lives === 0 && !this.isDying) {
+      this.die();
+      gameManager.gameOver();
     }
+  }
 
-    // Create new message container
-    const messageContainer = document.createElement('div');
-    messageContainer.className = 'message-container';
-    document.body.appendChild(messageContainer);
-
-    // Add visible class after a small delay to trigger fade-in
-    setTimeout(() => {
-      messageContainer.classList.add('visible');
-    }, 10);
-
-    // Animate text typing
-    let currentText = '';
-    const typeSpeed = 50; // Speed of typing in milliseconds
-    
-    const typeWriter = (text, index) => {
-      if (index < text.length) {
-        currentText += text[index];
-        messageContainer.textContent = currentText;
-        setTimeout(() => typeWriter(text, index + 1), typeSpeed);
-      }
-    };
-
-    // Start typing animation
-    typeWriter(message.toString(), 0); // Convert message to string to ensure it has length
-
-    // Remove message after delay
-    setTimeout(() => {
-      messageContainer.classList.add('fade-out');
-      setTimeout(() => {
-        messageContainer.remove();
-      }, 500); // Match this with the CSS transition duration
-    }, message.toString().length * typeSpeed + 2000); // Display duration based on message length plus extra time
+  die() {
+    this.isDying = true;
+    this.velocity = { x: 0, y: 0 };
+    this.switchAnimation("death");
   }
 }

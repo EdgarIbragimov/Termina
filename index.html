@@ -19,14 +19,13 @@
       <p><strong>Lives:</strong> <span id="lives">10</span></p>
       <p><strong>Damage:</strong> <span id="damage">1</span></p>
       <p><strong>Speed:</strong> <span id="speed">5</span></p>
-      <p><strong>Kills:</strong> <span id="kills">0</span>/<span id="maxKills">12</span></p>
+      <p><strong>Kills:</strong> <span id="kills">0</span><span id="maxKills">/6</span></p>
     </div>
-
     <div id="message-container" class="message-container"></div>
 
     <script>
-    const canvas = document.getElementById("myCanvas");
-    const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
     </script>
 
     <script src="./src/entities/Entity.js"></script>
@@ -36,6 +35,7 @@
     <script src="./src/entities/Needles.js"></script>
     <script src="./src/entities/Trap.js"></script>
     <script src="./src/entities/Chest.js"></script>
+    <script src="./src/entities/Transition.js"></script>
     <script src="./src/managers/gameManager.js"></script>
     <script src="./src/managers/soundManager.js"></script>
     <script src="./src/managers/spriteManager.js"></script>
@@ -44,7 +44,7 @@
     <script src="./src/managers/mapManager.js"></script>
     <script>
       gameManager.loadAll(ctx, 1);
-      gameManager.init();
+      gameManager.initSound();
       gameManager.play(performance.now());
     </script>
   </body>

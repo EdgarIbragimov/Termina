@@ -58,6 +58,10 @@ class Entity {
   }
 
   chaseFunction(enemy, player) {
+    if (!enemy || !player) {
+      return;
+    }
+
     // Разность координат
     const dx = player.hitbox.position.x - enemy.hitbox.position.x;
     const dy = player.hitbox.position.y - enemy.hitbox.position.y;

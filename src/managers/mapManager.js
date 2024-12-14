@@ -4,10 +4,23 @@ class MapManager {
     this.tLayer = null;
     this.xCount = 0;
     this.yCount = 0;
-    this.tSize = { x: 32, y: 32 };
+    this.tSize = { x: 16, y: 16 };
     this.mapSize = { x: 16, y: 10 };
     this.tilesets = [];
     this.imgLoadCount = 0;
+    this.jsonLoaded = false;
+  }
+
+  reset() {
+    this.mapData = null;
+    this.tLayer = null;
+    this.xCount = 0;
+    this.yCount = 0;
+    this.tSize = { x: 16, y: 16 };
+    this.mapSize = { x: 0, y: 0 };
+    this.tilesets = [];
+    this.imgLoadCount = 0;
+    this.imgLoaded = false;
     this.jsonLoaded = false;
   }
 
@@ -52,7 +65,7 @@ class MapManager {
     } else {
       if (this.tLayer === null) {
         this.tLayer = this.mapData.layers.filter(
-          (layer) => layer.type === "tilelayer"
+          (layer) => layer.type === "tilelayer",
         );
       }
       this.tLayer.forEach((layer) => {
@@ -70,7 +83,7 @@ class MapManager {
               pX, // Координата x где необходимо изобразить блок
               pY, // Координата y где необходимо изобразить
               this.tSize.x, // Размеры отображаемого блока
-              this.tSize.y // Размеры отображаемого блока
+              this.tSize.y, // Размеры отображаемого блока
             );
           }
         });
