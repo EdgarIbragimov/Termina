@@ -14,9 +14,19 @@
       Sorry, your browser does not support canvas.
     </canvas>
 
+    <div id="info">
+      <h2>Player stats</h2>
+      <p><strong>Lives:</strong> <span id="lives">10</span></p>
+      <p><strong>Damage:</strong> <span id="damage">1</span></p>
+      <p><strong>Speed:</strong> <span id="speed">5</span></p>
+      <p><strong>Kills:</strong> <span id="kills">0</span>/<span id="maxKills">12</span></p>
+    </div>
+
+    <div id="message-container" class="message-container"></div>
+
     <script>
-      const canvas = document.getElementById("myCanvas");
-      const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
     </script>
 
     <script src="./src/entities/Entity.js"></script>

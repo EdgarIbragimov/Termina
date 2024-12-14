@@ -375,7 +375,7 @@ class Player extends Entity {
                           ? this.hasBeenTrapped
                             ? "crawlUpRight"
                             : "walkUpRight"
-                          : "defaultAnimation",
+                          : "defaultAnimation"
         );
       } else {
         this.switchAnimation(
@@ -397,7 +397,7 @@ class Player extends Entity {
                     : "stayRight"
                   : this.hasBeenTrapped
                     ? "stayCrawlDown"
-                    : "defaultAnimation",
+                    : "defaultAnimation"
         );
       }
     }
@@ -427,6 +427,7 @@ class Player extends Entity {
 
     if (entity instanceof Chest && eventsManager.keys["e"].pressed) {
       entity.open(this);
+      this.displayChestMessage(entity.message);
     }
   }
 
@@ -464,7 +465,7 @@ class Player extends Entity {
                       ? "attackDownRight"
                       : this.direction === "upRight"
                         ? "attackUpRight"
-                        : "defaultAnimation",
+                        : "defaultAnimation"
       );
 
       const entity = physicManager.entityAtXY(this);
@@ -511,7 +512,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downLeft";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft",
+      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft"
     );
   }
 
@@ -520,7 +521,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downRight";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight",
+      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight"
     );
   }
 
@@ -559,7 +560,7 @@ class Player extends Entity {
                 : "stayRight"
               : this.hasBeenTrapped
                 ? "stayCrawlDown"
-                : "defaultAnimation",
+                : "defaultAnimation"
     );
   }
 
@@ -608,5 +609,54 @@ class Player extends Entity {
         this.isInvulnerable = false;
       }, this.invulnerabilityDuration);
     }
+  }
+
+  updatePlayerHUD() {
+    document.getElementById("lives").textContent = this.lives;
+    document.getElementById("damage").textContent = this.damage;
+    document.getElementById("speed").textContent = this.speed;
+  }
+
+  displayChestMessage(message) {
+    if (!message) return; // Guard clause for undefined messages
+    
+    // Remove any existing message containers
+    const existingContainer = document.querySelector('.message-container');
+    if (existingContainer) {
+      existingContainer.remove();
+    }
+
+    // Create new message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container';
+    document.body.appendChild(messageContainer);
+
+    // Add visible class after a small delay to trigger fade-in
+    setTimeout(() => {
+      messageContainer.classList.add('visible');
+    }, 10);
+
+    // Animate text typing
+    let currentText = '';
+    const typeSpeed = 50; // Speed of typing in milliseconds
+    
+    const typeWriter = (text, index) => {
+      if (index < text.length) {
+        currentText += text[index];
+        messageContainer.textContent = currentText;
+        setTimeout(() => typeWriter(text, index + 1), typeSpeed);
+      }
+    };
+
+    // Start typing animation
+    typeWriter(message.toString(), 0); // Convert message to string to ensure it has length
+
+    // Remove message after delay
+    setTimeout(() => {
+      messageContainer.classList.add('fade-out');
+      setTimeout(() => {
+        messageContainer.remove();
+      }, 500); // Match this with the CSS transition duration
+    }, message.toString().length * typeSpeed + 2000); // Display duration based on message length plus extra time
   }
 }
