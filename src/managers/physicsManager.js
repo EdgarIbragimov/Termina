@@ -1,5 +1,14 @@
 class PhysicManager {
   update(entity) {
+    if (entity instanceof Needles && gameManager.lvl === 1 && entity.isRunningAway) {
+      entity.position.x += entity.velocity.x;
+      entity.position.y += entity.velocity.y;
+      
+      entity.hitbox.position.x = entity.position.x + entity.hitboxOffset.xOffset;
+      entity.hitbox.position.y = entity.position.y + entity.hitboxOffset.yOffset;
+      return;
+    }
+
     const oldX = entity.position.x;
     const oldY = entity.position.y;
 
@@ -51,7 +60,7 @@ class PhysicManager {
       entity.position.y = mapManager.mapSize.y - entity.hitbox.height;
     }
   }
-  
+
   entityAtXY = (obj) => {
     for (let i = 0; i < gameManager.entities.length; i++) {
       let e = gameManager.entities[i];
@@ -61,6 +70,18 @@ class PhysicManager {
     }
     return null;
   };
+
+  getEntitiesInRange(entity, range) {
+    return gameManager.entities.filter((other) => {
+      if (other === entity) return false;
+
+      const dx = other.position.x - entity.position.x;
+      const dy = other.position.y - entity.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      return distance <= range;
+    });
+  }
 
   checkCollision(entity1, entity2) {
     return (

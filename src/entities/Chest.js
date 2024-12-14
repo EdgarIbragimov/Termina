@@ -82,7 +82,6 @@ class Chest extends Entity {
   }
 
   open(player) {
-    // console.log(">>> Chest opened!");
     if (!this.isOpen) {
       this.isOpen = true;
       this.switchAnimation("chestAnimation");
@@ -91,7 +90,7 @@ class Chest extends Entity {
 
       this.loot.effect(player);
 
-      player.displayChestMessage(this.getLootMessage());
+      gameManager.displayMessage(this.getLootMessage());
     }
   }
 
@@ -108,42 +107,5 @@ class Chest extends Entity {
       default:
         return "Unknown item!";
     }
-  }
-
-  displayChestMessage(message) {
-    const existingContainer = document.querySelector(".message-container");
-    if (existingContainer) {
-      existingContainer.remove();
-    }
-    const messageContainer = document.createElement("div");
-    messageContainer.className = "message-container";
-    document.body.appendChild(messageContainer);
-
-    setTimeout(() => {
-      messageContainer.classList.add("visible");
-    }, 10);
-
-    let currentText = "";
-    const typeSpeed = 50; // Speed of typing in milliseconds
-
-    const typeWriter = (text, index) => {
-      if (index < text.length) {
-        currentText += text[index];
-        messageContainer.textContent = currentText;
-        setTimeout(() => typeWriter(text, index + 1), typeSpeed);
-      }
-    };
-
-    typeWriter(message, 0);
-
-    setTimeout(
-      () => {
-        messageContainer.classList.add("fade-out");
-        setTimeout(() => {
-          messageContainer.remove();
-        }, 500); // Match this with the CSS transition duration
-      },
-      message.length * typeSpeed + 2000,
-    ); // Display duration based on message length plus extra time
   }
 }

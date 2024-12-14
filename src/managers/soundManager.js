@@ -4,16 +4,15 @@ class SoundManager {
     this.context = null;
     this.gainNode = null;
     this.loaded = false;
+    this.volume = localStorage.getItem('gameVolume') ? 
+      parseFloat(localStorage.getItem('gameVolume')) : 0.5;
   }
 
   init() {
-    try {
-      this.context = new (window.AudioContext || window.webkitAudioContext)();
-      this.gainNode = this.context.createGain();
-      this.gainNode.connect(this.context.destination); // подключение к динамикам
-    } catch (e) {
-      console.error("Web Audio API is not supported in this browser", e);
-    }
+    this.context = new (window.AudioContext || window.webkitAudioContext)();
+    this.gainNode = this.context.createGain();
+    this.gainNode.connect(this.context.destination);
+    this.gainNode.gain.value = this.volume;
   }
 
   load(path, callback) {
@@ -21,65 +20,71 @@ class SoundManager {
       callback(this.clips[path]);
       return;
     }
-    let clip = { path: path, buffer: null, loaded: false };
+
+    const clip = { path: path, buffer: null, loaded: false };
+    clip.play = (volume, options) => {
+      this.play(path, options);
+    };
     this.clips[path] = clip;
-    let request = new XMLHttpRequest();
-    request.open("GET", path, true);
-    request.responseType = "arraybuffer";
+
+    const request = new XMLHttpRequest();
+    request.open('GET', path, true);
+    request.responseType = 'arraybuffer';
     request.onload = () => {
-      this.context
-        .decodeAudioData(request.response)
-        .then((buffer) => {
+      this.context.decodeAudioData(request.response, 
+        (buffer) => {
           clip.buffer = buffer;
           clip.loaded = true;
-          callback(clip);
-        })
-        .catch((e) => console.error(`Error decoding audio data: ${e}`));
-    };
-    request.onerror = () => {
-      console.error(`Error loading audio file: ${path}`);
+          callback && callback(clip);
+        },
+        (error) => {
+          console.error('Error with decoding audio data' + error);
+        }
+      );
     };
     request.send();
   }
 
   loadArray(array) {
-    let loadPromises = array.map((path) => {
-      return new Promise((resolve, reject) => {
-        this.load(path, (clip) => {
-          resolve(clip);
-        });
+    array.forEach((path) => {
+      this.load(path, () => {
+        if (Object.values(this.clips).every(clip => clip.loaded)) {
+          this.loaded = true;
+        }
       });
     });
-
-    Promise.all(loadPromises).then(() => {
-      this.loaded = true;
-    });
   }
 
-  play(path, settings) {
-    if (!this.loaded) {
-      setTimeout(() => this.play(path, settings), 1000);
-      return;
+  play(path, options = {}) {
+    if (!this.loaded) return;
+    
+    const clip = this.clips[path];
+    if (!clip || !clip.loaded) return;
+
+    const source = this.context.createBufferSource();
+    source.buffer = clip.buffer;
+    source.connect(this.gainNode);
+    source.loop = options.looping || false;
+    
+    // Resume context if it was suspended
+    if (this.context.state === 'suspended') {
+      this.context.resume();
     }
-    let looping = false;
-    let volume = 1;
-    if (settings) {
-      if (settings.looping) looping = settings.looping;
-      if (settings.volume) volume = settings.volume;
-    }
-    let sd = this.clips[path];
-    if (sd === null) return false;
-    let sound = this.context.createBufferSource();
-    sound.buffer = sd.buffer;
-    sound.connect(this.gainNode);
-    sound.loop = looping;
-    this.gainNode.gain.value = volume;
-    sound.start(0);
-    return true;
+    
+    source.start(0);
+    return source;
   }
 
-  setVolume(volume) {
-    this.volume = volume;
+  setVolume(value) {
+    this.volume = value;
+    this.gainNode.gain.value = value;
+    localStorage.setItem('gameVolume', value);
+  }
+
+  stopAll() {
+    this.gainNode.disconnect();
+    this.gainNode = this.context.createGain();
+    this.gainNode.connect(this.context.destination);
     this.gainNode.gain.value = this.volume;
   }
 }

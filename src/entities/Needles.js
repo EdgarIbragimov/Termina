@@ -93,42 +93,56 @@ class Needles extends Entity {
         frameBuffer: 60,
         loop: true,
       },
+      peekAnimation1: {
+        imageSource:
+          "tiles/Enemies/Needles/DefaultAnimation/Needles_follow_1/Needles_test-",
+        framerate: 6,
+        frameBuffer: 18,
+        loop: true,
+      },
     };
 
     this.currentAnimation = this.animations.stayDown;
+
+    this.hasPerformedIntro = false;
+    this.isRunningAway = false;
   }
 
   update() {
     if (this.isDead) return;
 
-    const currentDate = Date.now();
-    const diffDate = currentDate - this.lastTakeHitDate;
-    if (diffDate > 1000) {
-      this.isHitByPlayer = false;
-    }
+    if (gameManager.lvl === 1) {
+      if (!this.hasPerformedIntro) {
+        this.performIntroSequence();
+      } else if (this.isRunningAway) {
+        
+        physicManager.update(this);
+        
+        this.switchAnimation("walkDown");
+      }
+    } else if (gameManager.lvl === 2) {
+      const currentDate = Date.now();
+      const diffDate = currentDate - this.lastTakeHitDate;
+      if (diffDate > 1000) {
+        this.isHitByPlayer = false;
+      }
 
-    if (!this.isHitByPlayer) {
-      this.chaseFunction(this, gameManager.player);
-    }
+      if (!this.isHitByPlayer) {
+        this.chaseFunction(this, gameManager.player);
+      }
+      
+      physicManager.update(this);
 
-    physicManager.update(this);
+      const isMoving = Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01;
 
-    const isMoving =
-      Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01;
-
-    if (!this.isTrapped) {
-      if (isMoving) {
-        const animationType =
-          "walk" +
-          this.direction.charAt(0).toUpperCase() +
-          this.direction.slice(1);
-        this.switchAnimation(animationType);
-      } else {
-        const stayAnimation =
-          "stay" +
-          this.direction.charAt(0).toUpperCase() +
-          this.direction.slice(1);
-        this.switchAnimation(stayAnimation);
+      if (!this.isTrapped) {
+        if (isMoving) {
+          const animationType = "walk" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
+          this.switchAnimation(animationType);
+        } else {
+          const stayAnimation = "stay" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
+          this.switchAnimation(stayAnimation);
+        }
       }
     }
 
@@ -182,7 +196,7 @@ class Needles extends Entity {
     this.isHitByPlayer = true;
     this.lives -= damage;
     this.lastTakeHitDate = this.lastTakeHitDate ?? Date.now();
-    console.log("Current enemy", this.lives, this);
+    console.log("Current enemy", this.lives);
     if (this.lives <= 0) {
       this.kill();
     }
@@ -192,5 +206,24 @@ class Needles extends Entity {
     this.isDead = true;
     this.switchAnimation("death");
     gameManager.bossIsKilled = true;
+    // TODO: gameManager.win();
+  }
+
+  performIntroSequence() {
+    if (!this.hasPerformedIntro) {
+      this.hasPerformedIntro = true;
+      this.switchAnimation("peekAnimation1");
+      
+      setTimeout(() => {
+        this.isRunningAway = true;
+        this.direction = "down";
+        this.velocity.y = this.speed;
+        this.velocity.x = 0;
+        
+        setTimeout(() => {
+          gameManager.killEntity(this);
+        }, 2000);
+      }, 3000);
+    }
   }
 }
