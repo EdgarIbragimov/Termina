@@ -62,6 +62,8 @@ class GameManager {
       }
     });
 
+    this.player.updatePlayerHUD();
+
     mapManager.draw(ctx);
     this.draw(ctx);
   }
@@ -93,7 +95,7 @@ class GameManager {
       this.entities.splice(entityIdForDelete, 1);
       if (entity instanceof Enemy) {
         this.killCount++;
-        console.log(`Kills: ${this.killCount}/${this.maxKills}`);
+        this.player.updatePlayerHUD();
       }
     }
   }
