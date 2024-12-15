@@ -85,6 +85,7 @@ class Chest extends Entity {
     if (!this.isOpen) {
       this.isOpen = true;
       this.switchAnimation("chestAnimation");
+      soundManager.play(gameManager.chestSoundPath);
 
       this.loot = this.items[Math.floor(Math.random() * this.items.length)];
 

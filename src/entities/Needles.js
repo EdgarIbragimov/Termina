@@ -97,7 +97,14 @@ class Needles extends Entity {
         imageSource:
           "tiles/Enemies/Needles/DefaultAnimation/Needles_follow_1/Needles_test-",
         framerate: 6,
-        frameBuffer: 18,
+        frameBuffer: 24,
+        loop: true,
+      },
+      laughingAnimation: {
+        imageSource:
+          "tiles/Enemies/Needles/LaughAnimations/Needles_laugh/Needles_laugh-",
+        framerate: 3,
+        frameBuffer: 24,
         loop: true,
       },
     };
@@ -115,9 +122,8 @@ class Needles extends Entity {
       if (!this.hasPerformedIntro) {
         this.performIntroSequence();
       } else if (this.isRunningAway) {
-        
         physicManager.update(this);
-        
+
         this.switchAnimation("walkDown");
       }
     } else if (gameManager.lvl === 2) {
@@ -130,17 +136,24 @@ class Needles extends Entity {
       if (!this.isHitByPlayer) {
         this.chaseFunction(this, gameManager.player);
       }
-      
+
       physicManager.update(this);
 
-      const isMoving = Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01;
+      const isMoving =
+        Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01;
 
       if (!this.isTrapped) {
         if (isMoving) {
-          const animationType = "walk" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
+          const animationType =
+            "walk" +
+            this.direction.charAt(0).toUpperCase() +
+            this.direction.slice(1);
           this.switchAnimation(animationType);
         } else {
-          const stayAnimation = "stay" + this.direction.charAt(0).toUpperCase() + this.direction.slice(1);
+          const stayAnimation =
+            "stay" +
+            this.direction.charAt(0).toUpperCase() +
+            this.direction.slice(1);
           this.switchAnimation(stayAnimation);
         }
       }
@@ -167,6 +180,7 @@ class Needles extends Entity {
       if (enemyFeetY > trapTopY && enemyFeetY <= trapBottomY) {
         this.lives--;
         entity.isActivate = true;
+        soundManager.play(gameManager.trapSoundPath);
         entity.switchAnimation("trapAnimation");
         if (this.lives <= 0) {
           this.kill();
@@ -205,25 +219,30 @@ class Needles extends Entity {
   kill() {
     this.isDead = true;
     this.switchAnimation("death");
-    gameManager.bossIsKilled = true;
-    // TODO: gameManager.win();
+    gameManager.handleGameWin();
   }
 
   performIntroSequence() {
     if (!this.hasPerformedIntro) {
       this.hasPerformedIntro = true;
       this.switchAnimation("peekAnimation1");
-      
+
       setTimeout(() => {
+        soundManager.play(gameManager.needlesEventPath);
         this.isRunningAway = true;
         this.direction = "down";
         this.velocity.y = this.speed;
         this.velocity.x = 0;
-        
+
         setTimeout(() => {
           gameManager.killEntity(this);
         }, 2000);
-      }, 3000);
+      }, 8000);
     }
+  }
+
+  laugh() {
+    this.switchAnimation("laughingAnimation");
+    soundManager.play(gameManager.needlesLaughPath);
   }
 }

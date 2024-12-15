@@ -1,7 +1,9 @@
 class GameManager {
+  // Initialize game state and register entity types
   constructor() {
     this.factory = new Factory();
 
+    // Register available entity types
     this.factory.registerType("Player", Player);
     this.factory.registerType("Enemy", Enemy);
     this.factory.registerType("Needles", Needles);
@@ -9,8 +11,7 @@ class GameManager {
     this.factory.registerType("Trap", Trap);
     this.factory.registerType("Transition", Transition);
 
-    this.lastSpawnTime = Date.now();
-
+    // Game state variables
     this.entities = [];
     this.player = null;
     this.lvl = 1;
@@ -18,41 +19,109 @@ class GameManager {
       "../../assets/map/Level1.json",
       "../../assets/map/Level2.json",
     ];
+    this.killCount = 0;
+    this.maxKills = 6;
+    this.isBossLevel = false;
 
+    // Timing variables
     this.frameDuration = 1000 / 60;
     this.lastFrameTime = 0;
+    this.lastSpawnTime = Date.now();
+    this.startGameTime = null;
+    this.finishGameTime = null;
 
+    // Game state flags
+    this.bossIsKilled = false;
+    this.gameOverFlag = false;
+
+    // Audio settings
     this.volume = 1;
+    this.gameMusicPath = "../../audio/music/ost.mp3";
+    this.needlesEventPath = "../../audio/sounds/needles_event1.wav";
+    this.needlesLaughPath = "../../audio/sounds/needles_laugh.wav";
+    this.trapSoundPath = "../../audio/sounds/trap_sound.wav";
+    this.deathSoundPath = "../../audio/sounds/death_sound.wav";
+    this.attackSoundPath = "../../audio/sounds/attack_sound.wav";
+    this.chestSoundPath = "../../audio/sounds/chest_sound.wav";
 
+    // Enemy spawn points
     this.spawnPoints = [
       { name: "Ghost_spawn1", x: 117, y: 534 },
       { name: "Ghost_spawn2", x: 360, y: 811 },
       { name: "Ghost_spawn3", x: 1134, y: 56 },
     ];
+  }
 
-    this.killCount = 0;
-    this.maxKills = 6;
+  // Game initialization methods
+  loadAll(ctx, lvl) {
+    this.lvl = lvl;
+    mapManager.loadMap(this.levels[this.lvl - 1]);
+    spriteManager.loadAtlas(
+      "../../assets/sprites/atlas.json",
+      "../../assets/sprites/spritesheet.png",
+    );
+    mapManager.parseEntities();
+    mapManager.draw(ctx);
+    this.updateLevelObjective();
+  }
 
-    this.isBossLevel = false;
-    this.gameMusicPath = "../../audio/music/ost.mp3";
+  initSound() {
+    if (!soundManager.loaded) {
+      soundManager.init();
+      soundManager.loadArray([
+        this.gameMusicPath,
+        this.needlesEventPath,
+        this.trapSoundPath,
+        this.deathSoundPath,
+        this.attackSoundPath,
+        this.chestSoundPath,
+        this.needlesLaughPath,
+      ]);
+    }
 
-    this.startGameTime = null;
-    this.finishGameTime = null;
-    this.bossIsKilled = false;
+    const startAudio = () => {
+      if (soundManager.context.state === "suspended") {
+        soundManager.context.resume().then(() => {
+          soundManager.play(this.gameMusicPath, { looping: true });
+        });
+      }
+    };
+
+    document.addEventListener("click", startAudio, { once: true });
+    document.addEventListener("keydown", startAudio, { once: true });
   }
 
   initPlayer(obj) {
     this.player = obj;
   }
 
-  update() {
-    if (!this.player) {
-      return;
+  // Game loop and update methods
+  play(timestamp) {
+    if (!this.gameOverFlag) {
+      if (this.startGameTime === null) {
+        this.startGameTime = Date.now();
+      }
+      window.requestAnimationFrame((timestamp) => this.play(timestamp));
+
+      if (!this.lastFrameTime) {
+        this.lastFrameTime = timestamp;
+      }
+
+      const elapsed = timestamp - this.lastFrameTime;
+
+      if (elapsed >= this.frameDuration) {
+        updateWorld();
+        this.lastFrameTime = timestamp - (elapsed % this.frameDuration);
+      }
     }
+  }
+
+  update() {
+    if (!this.player) return;
 
     const currentDate = Date.now();
     const diffDate = currentDate - this.lastSpawnTime;
-    if (diffDate > 12000) {
+    if (diffDate > 8000) {
       this.spawnEnemies();
       this.lastSpawnTime = currentDate;
     }
@@ -75,52 +144,6 @@ class GameManager {
     this.draw(ctx);
   }
 
-  updatePlayerHUD() {
-    document.getElementById("lives").textContent = this.player.lives;
-    document.getElementById("damage").textContent = this.player.damage;
-    document.getElementById("speed").textContent = this.player.speed;
-    document.getElementById("kills").textContent = gameManager.killCount;
-  }
-
-  spawnEnemies() {
-    if (this.killCount >= this.maxKills || this.lvl === 2) {
-      return;
-    }
-
-    this.spawnPoints.forEach((spawnPoint) => {
-      const newEntity = this.factory.create("Enemy");
-      Object.assign(newEntity, {
-        name: spawnPoint.name,
-        position: { x: spawnPoint.x, y: spawnPoint.y },
-        width: 43,
-        height: 85,
-        sides: {
-          bottom: spawnPoint.y + 85,
-        },
-      });
-
-      this.entities.push(newEntity);
-    });
-  }
-
-  killEntity(entity) {
-    const entityIdForDelete = this.entities.indexOf(entity);
-    if (entityIdForDelete > -1) {
-      this.entities.splice(entityIdForDelete, 1);
-      if (entity instanceof Enemy) {
-        if (this.lvl === 2 && entity instanceof Needles) {
-          this.handleGameWin();
-        } else if (this.lvl === 1) {
-          this.killCount++;
-          if (this.killCount >= this.maxKills) {
-            this.nextLevel();
-          }
-        }
-        this.updatePlayerHUD();
-      }
-    }
-  }
-
   draw(ctx) {
     this.entities.forEach((e) => {
       try {
@@ -131,102 +154,74 @@ class GameManager {
     });
   }
 
-  loadAll(ctx, lvl) {
-    this.lvl = lvl;
-    mapManager.loadMap(this.levels[this.lvl - 1]);
-    spriteManager.loadAtlas(
-      "../../assets/sprites/atlas.json",
-      "../../assets/sprites/spritesheet.png"
-    );
+  // Entity management methods
+  spawnEnemies() {
+    if (this.killCount >= this.maxKills || this.lvl === 2) return;
 
-    mapManager.parseEntities();
-    mapManager.draw(ctx);
-
-    this.updateLevelObjective();
+    this.spawnPoints.forEach((spawnPoint) => {
+      const newEntity = this.factory.create("Enemy");
+      Object.assign(newEntity, {
+        name: spawnPoint.name,
+        position: { x: spawnPoint.x, y: spawnPoint.y },
+        width: 43,
+        height: 85,
+        sides: { bottom: spawnPoint.y + 85 },
+      });
+      this.entities.push(newEntity);
+    });
   }
 
-  play(timestamp) {
-    if (!this.gameOverFlag) {
-      if (this.startGameTime === null) {
-        this.startGameTime = Date.now();
-      }
-      window.requestAnimationFrame((timestamp) => this.play(timestamp));
-
-      if (!this.lastFrameTime) {
-        this.lastFrameTime = timestamp;
-      }
-
-      const elapsed = timestamp - this.lastFrameTime;
-
-      if (elapsed >= this.frameDuration) {
-        updateWorld();
-        this.lastFrameTime = timestamp - (elapsed % this.frameDuration);
+  killEntity(entity) {
+    const entityIdForDelete = this.entities.indexOf(entity);
+    if (entityIdForDelete > -1) {
+      this.entities.splice(entityIdForDelete, 1);
+      if (entity instanceof Enemy) {
+        if (this.lvl === 2 && entity instanceof Needles) {
+          this.bossIsKilled = true;
+          this.handleGameWin();
+        } else if (this.lvl === 1) {
+          this.killCount++;
+        }
+        this.updatePlayerHUD();
       }
     }
   }
 
-  gameOver() {
-    if (this.player) {
-    
-      setTimeout(() => {
-        this.gameOverFlag = true;
-        this.finishGameTime = Date.now();
-        const gameTime = Math.round((this.finishGameTime - this.startGameTime) / 1000);
-        
-        this.displayMessage("Game Over! Press SPACE or Enter for return to main menu");
-        
-        const onKeyPress = (event) => {
-          if (event.key === " " || event.key === "Enter") {
-            window.location.href = "../../src/html/menu.html";
-          }
-        };
-        
-        document.addEventListener("keydown", onKeyPress);
-        
-        this.cleanupGameOverListeners = () => {
-          document.removeEventListener("keydown", onKeyPress);
-        };
-      }, 2000);
-    }
-  }
-
-  win() {
-    this.gameOverFlag = true;
-  }
-
+  // Level management methods
   nextLevel() {
     this.lvl += 1;
-    
+
     const playerState = {
       lives: this.player.lives,
       damage: this.player.damage,
       speed: this.player.speed,
       hasBeenTrapped: this.player.hasBeenTrapped,
       isSpeedDebuffed: this.player.isSpeedDebuffed,
-      defaultSpeed: this.player.defaultSpeed
+      defaultSpeed: this.player.defaultSpeed,
     };
 
     this.entities = [];
     this.killCount = 0;
-    
-    this.isBossLevel = (this.lvl === 2);
-    
+    this.isBossLevel = this.lvl === 2;
+
     mapManager.reset();
     this.loadAll(ctx, this.lvl);
 
     setTimeout(() => {
       if (this.player) {
-        this.player.lives = playerState.lives;
-        this.player.damage = playerState.damage;
-        this.player.speed = playerState.speed;
-        this.player.defaultSpeed = playerState.defaultSpeed;
-        this.player.hasBeenTrapped = playerState.hasBeenTrapped;
-        this.player.isSpeedDebuffed = playerState.isSpeedDebuffed;
-        
+        Object.assign(this.player, playerState);
         this.updatePlayerHUD();
         this.updateLevelObjective();
       }
     }, 100);
+  }
+
+  // UI update methods
+  updatePlayerHUD() {
+    document.getElementById("lives").textContent = this.player.lives;
+    document.getElementById("damage").textContent = this.player.damage;
+    document.getElementById("speed").textContent = this.player.speed;
+    document.getElementById("kills").textContent = this.killCount;
   }
 
   updateLevelObjective() {
@@ -242,47 +237,24 @@ class GameManager {
     }
   }
 
-  initSound() {
-    if (!soundManager.loaded) {
-      soundManager.init();
-      soundManager.loadArray([this.gameMusicPath]);
-    }
-
-    // Добавляем обработчик для начала воспроизведения по действию пользователя
-    const startAudio = () => {
-      if (soundManager.context.state === "suspended") {
-        soundManager.context.resume().then(() => {
-          soundManager.play(this.gameMusicPath, { looping: true });
-        });
-      }
-    };
-
-    document.addEventListener("click", startAudio, { once: true });
-    document.addEventListener("keydown", startAudio, { once: true });
-  }
-
   displayMessage(message) {
-    if (!message) return; // Guard clause for undefined messages
+    if (!message) return;
 
-    // Remove any existing message containers
     const existingContainer = document.querySelector(".message-container");
     if (existingContainer) {
       existingContainer.remove();
     }
 
-    // Create new message container
     const messageContainer = document.createElement("div");
     messageContainer.className = "message-container";
     document.body.appendChild(messageContainer);
 
-    // Add visible class after a small delay to trigger fade-in
     setTimeout(() => {
       messageContainer.classList.add("visible");
     }, 10);
 
-    // Animate text typing
     let currentText = "";
-    const typeSpeed = 50; // Speed of typing in milliseconds
+    const typeSpeed = 50;
 
     const typeWriter = (text, index) => {
       if (index < text.length) {
@@ -292,19 +264,92 @@ class GameManager {
       }
     };
 
-    // Start typing animation
-    typeWriter(message.toString(), 0); // Convert message to string to ensure it has length
+    typeWriter(message.toString(), 0);
 
-    // Remove message after delay
     setTimeout(
       () => {
         messageContainer.classList.add("fade-out");
         setTimeout(() => {
           messageContainer.remove();
-        }, 500); // Match this with the CSS transition duration
+        }, 500);
       },
-      message.toString().length * typeSpeed + 2000
-    ); // Display duration based on message length plus extra time
+      message.toString().length * typeSpeed + 2000,
+    );
+  }
+
+  // Game state methods
+  handleGameWin() {
+    if (!this.gameOverFlag) {
+      this.gameOverFlag = true;
+      this.finishGameTime = Date.now();
+      const gameTime = Math.round(
+        (this.finishGameTime - this.startGameTime) / 1000,
+      );
+
+      const playerNickname =
+        localStorage.getItem("playerNickname") || "Unknown";
+
+      const leaderboardData = JSON.parse(
+        localStorage.getItem("leaderboard") || "[]",
+      );
+      leaderboardData.push({
+        nickname: playerNickname,
+        time: gameTime,
+        date: new Date().toISOString(),
+      });
+
+      leaderboardData.sort((a, b) => a.time - b.time);
+      if (leaderboardData.length > 10) {
+        leaderboardData.length = 10;
+      }
+
+      localStorage.setItem("leaderboard", JSON.stringify(leaderboardData));
+
+      this.displayMessage(
+        `Congratulations! You've completed the game in ${gameTime} seconds! Press SPACE or Enter to view leaderboard`,
+      );
+
+      const onKeyPress = (event) => {
+        if (event.key === " " || event.key === "Enter") {
+          soundManager.stopAll();
+          window.location.href = "../../src/html/leaderboard.html";
+        }
+      };
+
+      document.addEventListener("keydown", onKeyPress);
+      this.cleanupGameWinListeners = () => {
+        document.removeEventListener("keydown", onKeyPress);
+      };
+    }
+  }
+
+  gameOver() {
+    if (this.player) {
+      soundManager.play(this.deathSoundPath);
+      setTimeout(() => {
+        this.gameOverFlag = true;
+        this.finishGameTime = Date.now();
+        const gameTime = Math.round(
+          (this.finishGameTime - this.startGameTime) / 1000,
+        );
+
+        this.displayMessage(
+          "Game Over! Press SPACE or Enter for return to main menu",
+        );
+
+        const onKeyPress = (event) => {
+          if (event.key === " " || event.key === "Enter") {
+            soundManager.stopAll();
+            window.location.href = "../../src/html/menu.html";
+          }
+        };
+
+        document.addEventListener("keydown", onKeyPress);
+        this.cleanupGameOverListeners = () => {
+          document.removeEventListener("keydown", onKeyPress);
+        };
+      }, 2000);
+    }
   }
 }
 

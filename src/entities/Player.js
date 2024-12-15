@@ -420,6 +420,7 @@ class Player extends Entity {
         }
         entity.isActivate = true;
         entity.switchAnimation("trapAnimation");
+        soundManager.play(gameManager.trapSoundPath);
 
         if (!this.hasBeenTrapped) {
           this.hasBeenTrapped = true;
@@ -454,7 +455,7 @@ class Player extends Entity {
     if (currentTime - this.attackEnd >= this.attackCD && !this.isAttacking) {
       this.attackEnd = currentTime;
       this.isAttacking = true;
-
+      soundManager.play(gameManager.attackSoundPath);
       this.switchAnimation(
         this.direction === "down"
           ? "attackDown"
@@ -476,7 +477,7 @@ class Player extends Entity {
       );
 
       const entities = physicManager.getEntitiesInRange(this, 50);
-      entities.forEach(entity => {
+      entities.forEach((entity) => {
         if (entity instanceof Enemy || entity instanceof Needles) {
           entity.takeAttack(this.damage);
         }
@@ -605,7 +606,7 @@ class Player extends Entity {
     if (isEnemyAttack && this.lives > 0) {
       this.lives--;
       this.isInvulnerableToEnemies = true;
-      
+
       setTimeout(() => {
         this.isInvulnerableToEnemies = false;
       }, this.invulnerabilityDuration);
@@ -621,5 +622,12 @@ class Player extends Entity {
     this.isDying = true;
     this.velocity = { x: 0, y: 0 };
     this.switchAnimation("death");
+    
+    if (gameManager.lvl === 2) {
+      const needles = gameManager.entities.find(entity => entity instanceof Needles);
+      if (needles) {
+        needles.laugh();
+      }
+    }
   }
 }
