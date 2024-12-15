@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Leaderboard</title>
+    <link rel="icon" type="image/png" href="../../assets/icon.png" />
+    <link rel="stylesheet" href="../css/stylesheet.css" />
+</head>
+<body>
+    <div class="leaderboard">
+        <h1>Top 10 Players</h1>
+        <table id="leaderboardTable">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Nickname</th>
+                    <th>Time (seconds)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="backToMenu()" class="menu__button">Back to Menu</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const leaderboardData = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+            const tbody = document.querySelector("#leaderboardTable tbody");
+            
+            leaderboardData.forEach((entry, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${entry.nickname}</td>
+                    <td>${entry.time}</td>
+                    <td>${new Date(entry.date).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+
+        function backToMenu() {
+            window.location.href = 'menu.html';
+        }
+    </script>
+</body>
+</html>

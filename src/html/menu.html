@@ -1,113 +1,110 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Main menu</title>
     <link rel="icon" type="image/png" href="../../assets/icon.png" />
     <link rel="stylesheet" href="../css/stylesheet.css" />
-  </head>
-
-  <body>
+</head>
+<body>
     <img src="../../assets/logo.png" alt="logo" title="Termina" />
     <div class="menu">
-      <button id="startGame" class="menu__button" onclick="startGame()">
-        Start Game
-      </button>
-      <button id="settings" class="menu__button" onclick="openSettings()">
-        Settings
-      </button>
-      <button id="leaderboard" class="menu__button">Leaderboard</button>
+        <button id="startGame" class="menu__button">Start Game</button>
+        <button id="settings" class="menu__button">Settings</button>
+        <button id="leaderboard" class="menu__button" onclick="window.location.href='leaderboard.html'">Leaderboard</button>
     </div>
-    <div id="modal">
-      <div id="modalContent">
-        <h2>Volume Setting</h2>
-        <div class="volume-control">
-          <label for="volumeSlider">Volume: </label>
-          <input
-            type="range"
-            id="volumeSlider"
-            min="0"
-            max="1"
-            step="0.1"
-            value="0.5"
-          />
+
+    <!-- Модальное окно для никнейма -->
+    <div id="nicknameModal" class="modal">
+        <div class="modal-content">
+            <h2>Enter your nickname</h2>
+            <input type="text" id="nicknameInput" maxlength="15" placeholder="Max 15 characters">
+            <p id="nicknameError" class="error-message"></p>
+            <button onclick="submitNickname()">Start Game</button>
         </div>
-        <br /><br />
-        <button id="exit__button" onclick="closeModal()">Exit</button>
-      </div>
     </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="modal">
+        <div id="modalContent">
+            <h2>Volume Setting</h2>
+            <div class="volume-control">
+                <label for="volumeSlider">Volume: </label>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" />
+            </div>
+            <br /><br />
+            <button id="exit__button">Exit</button>
+        </div>
+    </div>
+
     <script src="../../src/managers/soundManager.js"></script>
     <script>
-      function updateVolume(value) {}
+        document.addEventListener("DOMContentLoaded", () => {
+            // Инициализация менеджера звука
+            soundManager.init();
+            const menuMusicPath = "../../audio/music/menu.mp3";
+            soundManager.loadArray([menuMusicPath]);
 
-      const menuMusicPath = "../../audio/music/menu.mp3";
-      soundManager.init();
-      soundManager.loadArray([menuMusicPath]);
-      soundManager.play(menuMusicPath);
-    </script>
+            // Загрузка сохраненной громкости
+            const savedVolume = localStorage.getItem("gameVolume");
+            const volumeSlider = document.getElementById("volumeSlider");
+            if (savedVolume !== null) {
+                volumeSlider.value = savedVolume;
+                soundManager.setVolume(parseFloat(savedVolume));
+            }
 
-    <script>
-      document.getElementById("startGame").addEventListener("click", () => {
-        this.init();
-      });
+            // Обработчики событий
+            document.getElementById("startGame").addEventListener("click", () => {
+                document.getElementById("nicknameModal").style.display = "flex";
+                document.getElementById("nicknameInput").focus();
+            });
 
-      function startGame() {
-        window.location.href = "../../index.html";
-      }
+            document.getElementById("settings").addEventListener("click", () => {
+                document.getElementById("modal").style.display = "flex";
+                document.querySelectorAll(".menu__button").forEach(btn => btn.style.display = "none");
+            });
 
-      function openSettings() {
-        document.getElementById("modal").style.display = "flex";
-        document
-          .querySelectorAll(".menu__button")
-          .forEach((btn) => (btn.style.display = "none"));
-      }
+            document.getElementById("exit__button").addEventListener("click", () => {
+                document.getElementById("modal").style.display = "none";
+                document.querySelectorAll(".menu__button").forEach(btn => btn.style.display = "inline");
+            });
 
-      function closeModal() {
-        document.getElementById("modal").style.display = "none";
-        document
-          .querySelectorAll(".menu__button")
-          .forEach((btn) => (btn.style.display = "inline"));
-      }
-    </script>
+            volumeSlider.addEventListener("input", (e) => {
+                const volume = parseFloat(e.target.value);
+                soundManager.setVolume(volume);
+                localStorage.setItem("gameVolume", volume);
+            });
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Инициализация звука при загрузке страницы
-        soundManager.init();
+            // Обработка Escape для закрытия модальных окон
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.getElementById("nicknameModal").style.display = "none";
+                    document.getElementById("modal").style.display = "none";
+                    document.querySelectorAll(".menu__button").forEach(btn => btn.style.display = "inline");
+                }
+            });
 
-        // Загрузка сохраненной громкости
-        const savedVolume = localStorage.getItem("gameVolume");
-        const volumeSlider = document.getElementById("volumeSlider");
-
-        if (savedVolume !== null) {
-          volumeSlider.value = savedVolume;
-          soundManager.setVolume(parseFloat(savedVolume));
-        }
-
-        // Обработчик изменения громкости
-        volumeSlider.addEventListener("input", (e) => {
-          const volume = parseFloat(e.target.value);
-          soundManager.setVolume(volume);
+            // Запуск музыки по действию пользователя
+            document.addEventListener("click", () => {
+                if (soundManager.context.state === "suspended") {
+                    soundManager.context.resume().then(() => {
+                        soundManager.play(menuMusicPath, { looping: true });
+                    });
+                }
+            }, { once: true });
         });
 
-        // Обработчик для начала воспроизведения музыки по действию пользователя
-        document.addEventListener(
-          "click",
-          () => {
-            if (soundManager.context.state === "suspended") {
-              soundManager.context.resume().then(() => {
-                soundManager.loadArray(["../../audio/music/menu.mp3"]);
-                soundManager.play("../../audio/music/menu.mp3", {
-                  looping: true,
-                });
-              });
+        function submitNickname() {
+            const nickname = document.getElementById("nicknameInput").value.trim();
+            if (nickname.length === 0) {
+                document.getElementById("nicknameError").textContent = "Please enter a nickname";
+                return;
             }
-          },
-          { once: true }
-        );
-      });
+            localStorage.setItem("playerNickname", nickname);
+            window.location.href = "../../index.html";
+        }
     </script>
-  </body>
+</body>
 </html>
