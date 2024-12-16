@@ -28,7 +28,6 @@ class Player extends Entity {
     this.attackCD = 1000;
     this.attackEnd = 0;
 
-    // Анимации игрока
     this.animations = {
       stayDown: {
         imageSource: "tiles/Player/DefaultAnimations/Player_stay_down.png",
@@ -280,7 +279,7 @@ class Player extends Entity {
 
   update() {
     if (this.isDying) {
-      return; // Останавливаем обновление при смерти
+      return;
     }
 
     if (!this.isAttacking) {
@@ -378,7 +377,7 @@ class Player extends Entity {
                           ? this.hasBeenTrapped
                             ? "crawlUpRight"
                             : "walkUpRight"
-                          : "defaultAnimation",
+                          : "defaultAnimation"
         );
       } else {
         this.switchAnimation(
@@ -400,7 +399,7 @@ class Player extends Entity {
                     : "stayRight"
                   : this.hasBeenTrapped
                     ? "stayCrawlDown"
-                    : "defaultAnimation",
+                    : "defaultAnimation"
         );
       }
     }
@@ -473,7 +472,7 @@ class Player extends Entity {
                       ? "attackDownRight"
                       : this.direction === "upRight"
                         ? "attackUpRight"
-                        : "defaultAnimation",
+                        : "defaultAnimation"
       );
 
       const entities = physicManager.getEntitiesInRange(this, 50);
@@ -514,7 +513,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downLeft";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft",
+      this.hasBeenTrapped ? "crawlDownLeft" : "walkDownLeft"
     );
   }
 
@@ -523,7 +522,7 @@ class Player extends Entity {
     this.velocity.y = this.speed;
     this.direction = "downRight";
     this.switchAnimation(
-      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight",
+      this.hasBeenTrapped ? "crawlDownRight" : "walkDownRight"
     );
   }
 
@@ -562,7 +561,7 @@ class Player extends Entity {
                 : "stayRight"
               : this.hasBeenTrapped
                 ? "stayCrawlDown"
-                : "defaultAnimation",
+                : "defaultAnimation"
     );
   }
 
@@ -622,9 +621,11 @@ class Player extends Entity {
     this.isDying = true;
     this.velocity = { x: 0, y: 0 };
     this.switchAnimation("death");
-    
+
     if (gameManager.lvl === 2) {
-      const needles = gameManager.entities.find(entity => entity instanceof Needles);
+      const needles = gameManager.entities.find(
+        (entity) => entity instanceof Needles
+      );
       if (needles) {
         needles.laugh();
       }

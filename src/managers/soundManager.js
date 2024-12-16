@@ -66,7 +66,6 @@ class SoundManager {
     source.connect(this.gainNode);
     source.loop = options.looping || false;
     
-    // Resume context if it was suspended
     if (this.context.state === 'suspended') {
       this.context.resume();
     }

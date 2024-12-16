@@ -62,32 +62,23 @@ class Entity {
       return;
     }
 
-    // Разность координат
     const dx = player.hitbox.position.x - enemy.hitbox.position.x;
     const dy = player.hitbox.position.y - enemy.hitbox.position.y;
 
-    // Вычисление длины вектора (гипотенуза)
     const distance = Math.sqrt(dx * dx + dy * dy);
-    // console.log("Distance: ", distance);
 
-    // Пороговое значение для остановки
     const STOP_THRESHOLD = 3;
 
-    // Если игрок слишком далеко, двигаться к нему
     if (distance > STOP_THRESHOLD) {
-      // Нормализация вектора направления
       const normalizedX = dx / distance;
       const normalizedY = dy / distance;
 
-      // Устанавливаем velocity для движения
       enemy.velocity.x = normalizedX * this.speed;
       enemy.velocity.y = normalizedY * this.speed;
 
-      // Перемещение enemy
       enemy.position.x += enemy.velocity.x;
       enemy.position.y += enemy.velocity.y;
-
-      // Определение направления движения на основе преобладающей скорости
+      
       if (Math.abs(enemy.velocity.x) > Math.abs(enemy.velocity.y)) {
         enemy.direction = enemy.velocity.x > 0 ? "right" : "left";
       } else {

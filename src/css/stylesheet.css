@@ -219,3 +219,12 @@ canvas {
 .leaderboard tr:hover {
   background-color: #f0f0f0;
 }
+
+.leaderboard__button {
+  font-size: 20px;
+  font-family: Didot, serif;
+  color: black;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
