@@ -24,7 +24,7 @@ class MapManager {
     this.jsonLoaded = false;
   }
 
-  parseMap = (tilesJSON) => {
+  parseMap(tilesJSON) {
     this.mapData = JSON.parse(tilesJSON);
     this.xCount = this.mapData.width;
     this.yCount = this.mapData.height;
@@ -59,7 +59,7 @@ class MapManager {
     this.jsonLoaded = true;
   };
 
-  draw = (ctx) => {
+  draw(ctx) {
     if (!this.imgLoaded || !this.jsonLoaded) {
       setTimeout(() => this.draw(ctx), 100);
     } else {
@@ -91,7 +91,7 @@ class MapManager {
     }
   };
 
-  getTile = (tileIndex) => {
+  getTile(tileIndex) {
     const tile = {
       img: null,
       px: 0,
@@ -107,7 +107,7 @@ class MapManager {
     return tile;
   };
 
-  getTileset = (tileIndex) => {
+  getTileset(tileIndex) {
     for (let i = this.tilesets.length - 1; i >= 0; i--) {
       if (this.tilesets[i].firstgid <= tileIndex) {
         return this.tilesets[i];
@@ -116,7 +116,7 @@ class MapManager {
     return null;
   };
 
-  loadMap = (path) => {
+  loadMap(path) {
     const request = new XMLHttpRequest();
     request.onreadystatechange = () => {
       if (request.readyState === 4 && request.status === 200) {
@@ -127,7 +127,7 @@ class MapManager {
     request.send();
   };
 
-  parseEntities = () => {
+  parseEntities() {
     if (!this.imgLoaded || !this.jsonLoaded) {
       setTimeout(() => this.parseEntities(), 100);
     } else {
@@ -156,7 +156,7 @@ class MapManager {
     }
   };
 
-  getTilesetIdxOnWalkingArea = (x, y) => {
+  getTilesetIdxOnWalkingArea(x, y) {
     const idx =
       Math.floor(y / this.tSize.y) * this.xCount + Math.floor(x / this.tSize.x);
     return this.tLayer.find((layer) => layer.name === "WalkArea").data[idx];

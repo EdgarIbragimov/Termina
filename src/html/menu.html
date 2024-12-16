@@ -42,12 +42,11 @@
     <script src="../../src/managers/soundManager.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Инициализация менеджера звука
+
             soundManager.init();
             const menuMusicPath = "../../audio/music/menu.mp3";
             soundManager.loadArray([menuMusicPath]);
 
-            // Загрузка сохраненной громкости
             const savedVolume = localStorage.getItem("gameVolume");
             const volumeSlider = document.getElementById("volumeSlider");
             if (savedVolume !== null) {
@@ -55,7 +54,6 @@
                 soundManager.setVolume(parseFloat(savedVolume));
             }
 
-            // Обработчики событий
             document.getElementById("startGame").addEventListener("click", () => {
                 document.getElementById("nicknameModal").style.display = "flex";
                 document.getElementById("nicknameInput").focus();
@@ -77,7 +75,6 @@
                 localStorage.setItem("gameVolume", volume);
             });
 
-            // Обработка Escape для закрытия модальных окон
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") {
                     document.getElementById("nicknameModal").style.display = "none";
@@ -86,7 +83,6 @@
                 }
             });
 
-            // Запуск музыки по действию пользователя
             document.addEventListener("click", () => {
                 if (soundManager.context.state === "suspended") {
                     soundManager.context.resume().then(() => {

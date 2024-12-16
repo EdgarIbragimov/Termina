@@ -21,8 +21,6 @@ class Needles extends Entity {
     this.isHitByPlayer = false;
     this.lastTakeHitDate = null;
 
-    //this.isDead = false;
-
     this.animations = {
       stayRight: {
         imageSource:

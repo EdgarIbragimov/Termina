@@ -1,9 +1,7 @@
 class GameManager {
-  // Initialize game state and register entity types
   constructor() {
     this.factory = new Factory();
 
-    // Register available entity types
     this.factory.registerType("Player", Player);
     this.factory.registerType("Enemy", Enemy);
     this.factory.registerType("Needles", Needles);
@@ -11,7 +9,6 @@ class GameManager {
     this.factory.registerType("Trap", Trap);
     this.factory.registerType("Transition", Transition);
 
-    // Game state variables
     this.entities = [];
     this.player = null;
     this.lvl = 1;
@@ -23,18 +20,14 @@ class GameManager {
     this.maxKills = 6;
     this.isBossLevel = false;
 
-    // Timing variables
     this.frameDuration = 1000 / 60;
     this.lastFrameTime = 0;
     this.lastSpawnTime = Date.now();
     this.startGameTime = null;
     this.finishGameTime = null;
 
-    // Game state flags
-    this.bossIsKilled = false;
     this.gameOverFlag = false;
 
-    // Audio settings
     this.volume = 1;
     this.gameMusicPath = "../../audio/music/ost.mp3";
     this.needlesEventPath = "../../audio/sounds/needles_event1.wav";
@@ -44,7 +37,6 @@ class GameManager {
     this.attackSoundPath = "../../audio/sounds/attack_sound.wav";
     this.chestSoundPath = "../../audio/sounds/chest_sound.wav";
 
-    // Enemy spawn points
     this.spawnPoints = [
       { name: "Ghost_spawn1", x: 117, y: 534 },
       { name: "Ghost_spawn2", x: 360, y: 811 },
@@ -52,7 +44,6 @@ class GameManager {
     ];
   }
 
-  // Game initialization methods
   loadAll(ctx, lvl) {
     this.lvl = lvl;
     mapManager.loadMap(this.levels[this.lvl - 1]);
@@ -82,7 +73,7 @@ class GameManager {
     const startAudio = () => {
       if (soundManager.context.state === "suspended") {
         soundManager.context.resume().then(() => {
-          soundManager.play(this.gameMusicPath, { looping: true });
+         soundManager.play(this.gameMusicPath, { looping: true });
         });
       }
     };
@@ -95,7 +86,6 @@ class GameManager {
     this.player = obj;
   }
 
-  // Game loop and update methods
   play(timestamp) {
     if (!this.gameOverFlag) {
       if (this.startGameTime === null) {
@@ -154,10 +144,9 @@ class GameManager {
     });
   }
 
-  // Entity management methods
   spawnEnemies() {
     if (this.killCount >= this.maxKills || this.lvl === 2) return;
-
+  
     this.spawnPoints.forEach((spawnPoint) => {
       const newEntity = this.factory.create("Enemy");
       Object.assign(newEntity, {
@@ -176,10 +165,7 @@ class GameManager {
     if (entityIdForDelete > -1) {
       this.entities.splice(entityIdForDelete, 1);
       if (entity instanceof Enemy) {
-        if (this.lvl === 2 && entity instanceof Needles) {
-          this.bossIsKilled = true;
-          this.handleGameWin();
-        } else if (this.lvl === 1) {
+        if (this.lvl === 1) {
           this.killCount++;
         }
         this.updatePlayerHUD();
@@ -187,7 +173,6 @@ class GameManager {
     }
   }
 
-  // Level management methods
   nextLevel() {
     this.lvl += 1;
 
@@ -216,7 +201,6 @@ class GameManager {
     }, 100);
   }
 
-  // UI update methods
   updatePlayerHUD() {
     document.getElementById("lives").textContent = this.player.lives;
     document.getElementById("damage").textContent = this.player.damage;
@@ -277,7 +261,6 @@ class GameManager {
     );
   }
 
-  // Game state methods
   handleGameWin() {
     if (!this.gameOverFlag) {
       this.gameOverFlag = true;
